@@ -1,14 +1,18 @@
 package com.shinhan.education.vo;
 
 import java.sql.Date;
+import java.util.List;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -33,4 +37,11 @@ public class Members {
     private Date hiredate; //입사일
     private boolean marry; // 결혼유무
     private int haschild; //자녀 수
+    
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<PanFavorites> panFavoritesList;
+    
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<MemberLoans> memberLoansList;
 }

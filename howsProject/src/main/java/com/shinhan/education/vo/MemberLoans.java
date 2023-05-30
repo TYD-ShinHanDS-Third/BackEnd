@@ -1,7 +1,5 @@
 package com.shinhan.education.vo;
 
-import java.util.Date;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,15 +18,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "PANFAVORITES")
-public class PanFavorites {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int panid; // 모집공고번호
-    @ManyToOne
-    @JoinColumn(name = "memberid")
-    private String member; // 회원아이디
-    private String panname; // 모집 공고 이름
-    private Date panstartdate; // 공고 시작일
-    private Date panenddate; // 공고 종료일
+@Table(name = "MEMBERLOANS")
+public class MemberLoans {
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int memloanid; //대출코드(pk)
+	private String loanname; //대출상품명(fk)
+	@ManyToOne
+	@JoinColumn(name = "memid")
+	private String member;//회원id(fk)
+	private String loanstate;//대출진행상태
+	private String applyurl;//대출신청url
+	private String exlimit;//예상한도
 }
