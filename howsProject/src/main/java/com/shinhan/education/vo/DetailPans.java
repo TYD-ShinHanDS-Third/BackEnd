@@ -3,6 +3,7 @@ package com.shinhan.education.vo;
 import java.sql.Date;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -17,6 +18,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -48,8 +50,7 @@ public class DetailPans {
 	private String TOTALCOUNT;//총세대수
 	
 	
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "panid")
+	@OneToOne(mappedBy = "detailpan", cascade = CascadeType.ALL)
 	Pans pan;
 
 }

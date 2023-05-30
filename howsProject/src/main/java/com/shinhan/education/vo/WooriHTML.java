@@ -1,5 +1,6 @@
 package com.shinhan.education.vo;
 
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -13,9 +14,10 @@ import lombok.ToString;
 @Setter
 @ToString
 @Builder
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "shinhanHTML") 
+@Table(name = "wooriHTML") 
 public class WooriHTML {
 	@Id
 	private String bankname;
