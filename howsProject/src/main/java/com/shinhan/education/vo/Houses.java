@@ -33,6 +33,7 @@ public class Houses {
 	private Integer style;
 	private Double supplyarea;
 	private Integer rent;
+	
 	private Integer monthrent;
 	
 	
