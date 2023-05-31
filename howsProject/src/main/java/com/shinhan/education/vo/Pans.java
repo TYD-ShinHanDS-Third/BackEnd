@@ -20,7 +20,7 @@ import lombok.Setter;
 import lombok.ToString;
 @Getter
 @Setter
-@ToString(exclude = "detailpan")
+@ToString//(exclude = "detailpan")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,12 +37,13 @@ public class Pans {
 	private String panurl;//공고상세URL
 
 	@OneToOne(cascade = CascadeType.ALL)
+	//@JoinColumn(name = "panid", referencedColumnName = "panid")
 	@JoinColumn(name = "panid", referencedColumnName = "panid")
 	DetailPans detailpan;
 	
 	
-	@OneToMany(mappedBy = "pans", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<PanFavorites> panFavoritesList;
+	@OneToMany(mappedBy = "pans", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private List<PanFavorites> panfavoriteslist;
 	
 	
 	//@OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
