@@ -378,8 +378,11 @@ public class JsonTest {
 								JsonNode firstItem = dsAhflInfoArry.get(i);// 반복문
 
 								FILETYPE = firstItem.get("SL_PAN_AHFL_DS_CD_NM").toString();// 파일구분명
+								FILETYPE = FILETYPE.substring(1, FILETYPE.length() - 1);
 								FILENAME = firstItem.get("CMN_AHFL_NM").toString();// 첨부파일명
+								FILENAME = FILENAME.substring(1, FILENAME.length() - 1);
 								FILEURL = firstItem.get("AHFL_URL").toString();// 다운로드
+								FILEURL = FILEURL.substring(1, FILEURL.length() - 1);
 								FileInfos fi = FileInfos.builder().filename(FILENAME).filetype(FILETYPE).fileurl(FILEURL).build();
 								fileList.add(fi);
 							}
@@ -403,14 +406,20 @@ public class JsonTest {
 							JsonNode firstItem = dsSbdArry.get(0);// 반복문
 
 							AREA = firstItem.get("DDO_AR").toString();// 전용면적
+							AREA = AREA.substring(1, AREA.length() - 1);
 							ADDRESS = firstItem.get("LGDN_ADR").toString();// 단지주소
+							ADDRESS = ADDRESS.substring(1, ADDRESS.length() - 1);
 							DETAILADDRESS = firstItem.get("LGDN_DTL_ADR").toString();// 단지상세주소
+							DETAILADDRESS = DETAILADDRESS.substring(1, DETAILADDRESS.length() - 1);
 							ADDRESSNAME = firstItem.get("LCC_NT_NM").toString();// 단지명
+							ADDRESSNAME = ADDRESSNAME.substring(1, ADDRESSNAME.length() - 1);
 							String datetemp = "";
 							datetemp = firstItem.get("MVIN_XPC_YM").toString();
 							datetemp = datetemp.substring(1, datetemp.length() - 1);
 							MOVEINDATE = stringtodate(datetemp);// 입주예정월
 							TOTALCOUNT = firstItem.get("HSH_CNT").toString();// 총세대수
+							TOTALCOUNT = TOTALCOUNT.substring(1, TOTALCOUNT.length() - 1);
+
 
 						} else {
 							System.out.println("dsSplScdl is empty.");

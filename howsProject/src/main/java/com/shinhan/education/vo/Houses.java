@@ -24,13 +24,13 @@ public class Houses {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private String housecode; //auto id
+	private Long housecode; //auto id
 	private String si;
 	private String sigungu;
 	private String roadaddress;
 	private Integer housecount;
 	private String supplytype;
-	private Integer style;
+	private String style;
 	private Double supplyarea;
 	private Integer rent;
 	
