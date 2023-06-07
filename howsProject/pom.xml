@@ -12,7 +12,7 @@
 	</parent>
 	<groupId>com.shinhan</groupId>
 	<artifactId>springbootproject</artifactId>
-	
+
 	<version>0.0.1-SNAPSHOT</version>
 	<name>howsProject</name>
 	<description>Demo project for Spring Boot</description>
@@ -80,6 +80,28 @@
 			<groupId>com.oracle.database.jdbc</groupId>
 			<artifactId>ojdbc8</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<!-- 크롤링 JSOUP -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.11.2</version>
+		</dependency>
+
+		<!-- 셀리니움 -->
+
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.141.59</version>
+		</dependency>
+		<!-- 구글드라이브 -->
+		<dependency>
+			<groupId>io.github.bonigarcia</groupId>
+			<artifactId>webdrivermanager</artifactId>
+			<version>5.1.0</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
