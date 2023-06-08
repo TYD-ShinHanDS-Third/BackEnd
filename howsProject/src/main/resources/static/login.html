@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>로그인</title>
+</head>
+<body>
+    <h1>로그인</h1>
+    <form id="loginForm">
+        <label for="memberid">아이디:</label>
+        <input type="text" id="memberid" name="memberid" required><br>
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" required><br>
+        <input type="submit" value="로그인">
+    </form>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // 폼 제출 이벤트 중지
+
+            var member = {
+                memberid: document.getElementById("memberid").value,
+                password: document.getElementById("password").value
+            };
+
+            fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(member)
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 로그인 성공 시 메인 페이지로 이동
+                    window.location.href = "/login-success";
+                } else {
+                    // 로그인 실패 시 메시지 표시
+                    response.text().then(errorMessage => {
+                        alert(errorMessage);
+                    });
+                }
+            })
+            .catch(error => {
+                // 오류 처리
+                console.error(error);
+                alert("오류가 발생했습니다.");
+            });
+        });
+    </script>
+</body>
+</html>
