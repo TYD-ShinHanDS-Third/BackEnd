@@ -29,7 +29,7 @@ public class KookminCrawling {
 //   
 
 	// String names[] = {"iTouch 전세론(주택금융보증)","iTouch 전세론(서울보증일반)"};
-	@Test
+	//@Test
 	void getlinks() {
 
 		WebDriverManager.chromedriver().setup();
