@@ -46,6 +46,6 @@ public class Pans {
 	private List<PanFavorites> panfavoriteslist;
 	
 	
-	//@OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	//panfav
+	@OneToMany(mappedBy = "pans", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private List<PanFavorites> panfavlist;
 }
