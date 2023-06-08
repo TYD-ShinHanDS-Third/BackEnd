@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.vo.MemberSignUpRequest;
+import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
 
 
@@ -99,6 +100,7 @@ public class MemberServiceImpl implements MemberService {
         return memberOptional.isPresent();
     }
     
+    //회원탈퇴
     @Override
     public boolean delete(String memberId) {
         Optional<Members> memberOptional = memberRepository.findByMemberid(memberId);
@@ -111,5 +113,25 @@ public class MemberServiceImpl implements MemberService {
 
         return false;
     }
+    
+    //회원정보수정
+    @Transactional
+    @Override
+    public boolean update(MemberUpdateRequest request) throws Exception {
+        // 회원 ID를 기준으로 회원을 조회
+        Members member = memberRepository.findByMemberid(request.getMemberid())
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        // 수정할 필드들을 업데이트
+        member.setPswd(request.getPswd());
+        member.setAccBank(request.getAccBank());
+        member.setAccno(request.getAccno());
+        member.setHasjob(request.getHasJob());
+        member.sethiredate(request.getHiredate());
+        member.setMarry(request.getMarry());
+        member.setHaschild(request.getHaschild());
+        memberRepository.save(member);
+        return true;
+    }
+    
     
 }

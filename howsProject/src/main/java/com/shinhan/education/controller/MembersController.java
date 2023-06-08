@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberDeleteRequest;
 import com.shinhan.education.vo.MemberLoginRequest;
 import com.shinhan.education.vo.MemberSignUpRequest;
+import com.shinhan.education.vo.MemberUpdateRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -119,7 +121,22 @@ public class MembersController {
     }
     
     
-    //회원정보수정
+ // 회원정보 수정
+    @PutMapping("/update")
+    public ResponseEntity<String> update(@RequestBody MemberUpdateRequest request) {
+        try {
+            boolean isUpdated = memberService.update(request);
+
+            if (isUpdated) {
+                return ResponseEntity.ok("회원 정보가 수정되었습니다.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("회원 정보 수정에 실패했습니다.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 수정 중 오류가 발생했습니다.");
+        }
+    }
+    
     
     
 }
