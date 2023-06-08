@@ -12,9 +12,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.vo.DetailPans;
 import com.shinhan.education.vo.FileInfos;
@@ -34,7 +33,9 @@ public class JsonTest {
 
 	@Autowired
 	PanRepository panRepo;
-	
+	@Autowired
+	DetailPanRepository dpanRepo;
+
 	// 2015.05.05 -> 2015-05-05....월정보만 있는건 1일로 바꾼다
 	static Date stringtodate(String stringdate) throws ParseException {
 		if (stringdate == "")
@@ -119,7 +120,8 @@ public class JsonTest {
 	void getPan(int cnt) throws IOException, ParseException {
 		// List<String> panIdList = new ArrayList<>();
 		List<Pans> panList = new ArrayList<>();
-		//cnt = 10;
+		List<DetailPans> dpanList = new ArrayList<>();
+		// cnt = 10;
 		String testurl = "https://apis.data.go.kr/B552555/lhLeaseNoticeInfo1/lhLeaseNoticeInfo1?serviceKey=7KhE1xpaLNaHgKzHB0z7B6a1K4n4IgOGFCOpN6dFixZMHI1d0CyE2TCISvehO7bkNEOt2MArA3SxrU3JPf%2BOjw%3D%3D&UPP_AIS_TP_CD=06&PG_SZ="
 				+ cnt + "&PAGE=1";
 
@@ -189,20 +191,22 @@ public class JsonTest {
 								panurl = panurl.substring(1, panurl.length() - 1);
 								String happyhouse = dataArray.get(i).get("AIS_TP_CD_NM").toString();// 행복주택인지 판단.
 								happyhouse = happyhouse.substring(1, happyhouse.length() - 1);
-								//System.out.println("happyhouse : " + happyhouse);
+								// System.out.println("happyhouse : " + happyhouse);
 								if (happyhouse.equals("행복주택")) { // 행복주택이면 나머지 정보를 찾아서 객체를 만들어서 리스트에 추가한다.
 									DetailPans dp = getDetailPan(panid);
 									// System.out.println(dp);
 									// 공고 객체를 만든다.
 									Pans tempPan = Pans.builder().panid(panid).panname(panname).location(location)
-											.panstate(panstate).panurl(panurl).detailpan(dp).build();
+											.panstate(panstate).panurl(panurl).build();
+									
 									if (sqlpanstartdate != null)
 										tempPan.setPanstartdate(sqlpanstartdate);
 									if (sqlpanenddate != null)
 										tempPan.setPanenddate(sqlpanenddate);
 									// 추가한다.
 									panList.add(tempPan);
-									//System.out.println("누적 크기 : " + panList.size());
+									dpanList.add(dp);
+									// System.out.println("누적 크기 : " + panList.size());
 								}
 
 							}
@@ -219,41 +223,22 @@ public class JsonTest {
 			System.out.println("Received data is not in JSON array format.");
 		}
 
-//		for (int i = 0; i < panList.size(); i++) {
-//			System.out.println((i + 1) + "번째 pan" + panList.get(i));
-//			
-//		}
-		
-		//Map<String, String> pmap = new HashMap<>(); // HashMap 인스턴스 생성
-		panList.forEach(pan->{
-		//	if(pmap.containsKey(pan.getPanid())==false) {
-				
-				panRepo.save(pan);
-		//		pmap.put(pan.getPanid(), "hi");
-		//	}
-		//	else {
-		//		System.out.println("중복 : " + pan.getPanid());
-		//	}
-			
+		panList.forEach(pan -> {
+			panRepo.save(pan);
 		});
 
-		
-	}
+		dpanList.forEach((dp) -> {
+			dpanRepo.save(dp);
 
-	// @Test
-//	void testdp() throws IOException, ParseException {
-//
-//		getDetailPan("2015122300013750");
-//		getDetailPan("0000060318");
-//		getDetailPan("2015122300013431");
-//
-//	}
+		});
+
+	}
 
 	// 상세공고
 	DetailPans getDetailPan(String panid) throws IOException, ParseException {
 		DetailPans dp = null;
 		List<FileInfos> fileList = new ArrayList<>();
-		
+
 		Date ApplicationStartDate = null;// sql
 		Date ApplicationEndDate = null;// sql
 		Date WinnersAnnouncement = null;// sql
@@ -383,7 +368,8 @@ public class JsonTest {
 								FILENAME = FILENAME.substring(1, FILENAME.length() - 1);
 								FILEURL = firstItem.get("AHFL_URL").toString();// 다운로드
 								FILEURL = FILEURL.substring(1, FILEURL.length() - 1);
-								FileInfos fi = FileInfos.builder().filename(FILENAME).filetype(FILETYPE).fileurl(FILEURL).build();
+								FileInfos fi = FileInfos.builder().filename(FILENAME).filetype(FILETYPE)
+										.fileurl(FILEURL).build();
 								fileList.add(fi);
 							}
 
@@ -419,7 +405,6 @@ public class JsonTest {
 							MOVEINDATE = stringtodate(datetemp);// 입주예정월
 							TOTALCOUNT = firstItem.get("HSH_CNT").toString();// 총세대수
 							TOTALCOUNT = TOTALCOUNT.substring(1, TOTALCOUNT.length() - 1);
-
 
 						} else {
 							System.out.println("dsSplScdl is empty.");

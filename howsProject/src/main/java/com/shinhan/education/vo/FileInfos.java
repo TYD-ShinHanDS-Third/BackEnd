@@ -32,6 +32,6 @@ public class FileInfos {
 	private String fileurl; // 다운로드
 	
 	@ManyToOne
-	@JoinColumn(name = "panid")
+	@JoinColumn(name = "panid", referencedColumnName = "panid")
 	private DetailPans detailpans;
 }

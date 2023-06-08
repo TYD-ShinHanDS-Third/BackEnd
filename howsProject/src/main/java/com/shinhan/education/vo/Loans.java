@@ -32,8 +32,4 @@ public class Loans {
 	private String loanname;// 상품명
 	private String bankname;// 은행명
 
-	@OneToMany(mappedBy = "loanname", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<MemberLoans> memberLoansList;
-
-
 }
