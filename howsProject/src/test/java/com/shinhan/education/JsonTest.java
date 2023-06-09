@@ -12,7 +12,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinhan.education.respository.DetailPanRepository;
+import com.shinhan.education.respository.FileInfoRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.vo.DetailPans;
 import com.shinhan.education.vo.FileInfos;
@@ -35,6 +38,8 @@ public class JsonTest {
 	PanRepository panRepo;
 	@Autowired
 	DetailPanRepository dpanRepo;
+	@Autowired
+	FileInfoRepository fileRepo;
 
 	// 2015.05.05 -> 2015-05-05....월정보만 있는건 1일로 바꾼다
 	static Date stringtodate(String stringdate) throws ParseException {
@@ -118,6 +123,7 @@ public class JsonTest {
 
 	// 공고 전체
 	void getPan(int cnt) throws IOException, ParseException {
+		Map<String, List<FileInfos>> filemap = new HashMap<>();
 		// List<String> panIdList = new ArrayList<>();
 		List<Pans> panList = new ArrayList<>();
 		List<DetailPans> dpanList = new ArrayList<>();
@@ -196,15 +202,18 @@ public class JsonTest {
 									DetailPans dp = getDetailPan(panid);
 									// System.out.println(dp);
 									// 공고 객체를 만든다.
-									Pans tempPan = Pans.builder().panid(panid).panname(panname).location(location)
+									Pans pan = Pans.builder().panid(panid).panname(panname).location(location)
 											.panstate(panstate).panurl(panurl).build();
-									
+
 									if (sqlpanstartdate != null)
-										tempPan.setPanstartdate(sqlpanstartdate);
+										pan.setPanstartdate(sqlpanstartdate);
 									if (sqlpanenddate != null)
-										tempPan.setPanenddate(sqlpanenddate);
+										pan.setPanenddate(sqlpanenddate);
 									// 추가한다.
-									panList.add(tempPan);
+									panList.add(pan);
+									dp.setPan(pan);
+									filemap.put(pan.getPanid(), dp.getFileinfolist());
+									dp.setFileinfolist(null);
 									dpanList.add(dp);
 									// System.out.println("누적 크기 : " + panList.size());
 								}
@@ -223,12 +232,26 @@ public class JsonTest {
 			System.out.println("Received data is not in JSON array format.");
 		}
 
-		panList.forEach(pan -> {
-			panRepo.save(pan);
-		});
+//		panList.forEach(pan -> {
+//			panRepo.save(pan);
+//		});
 
 		dpanList.forEach((dp) -> {
 			dpanRepo.save(dp);
+
+		});
+		List<DetailPans> dpList = dpanRepo.findAll();
+		System.out.println(dpList);
+		dpList.forEach((x) -> {
+			String pan_id = x.getPan().getPanid();
+			System.out.println(pan_id);
+			List<FileInfos> templist = filemap.get(pan_id);
+			templist.forEach((files) -> {
+				files.setDetailpans(x);
+				fileRepo.save(files);
+			});
+			
+			
 
 		});
 
@@ -265,6 +288,7 @@ public class JsonTest {
 		String testurl = "http://apis.data.go.kr/B552555/lhLeaseNoticeDtlInfo1/getLeaseNoticeDtlInfo1?serviceKey=19Gk40rL7q%2FZEZCBH36HX1Q9H20AzqV01x%2Bh6E%2F2BrCV%2FjARhSZ4b5oSxK%2B5hETeOreZ72eGj9ydEkRhb0l0xQ%3D%3D&SPL_INF_TP_CD=063&CCR_CNNT_SYS_DS_CD=03&PAN_ID="
 				+ panid + "&UPP_AIS_TP_CD=06";
 		// System.out.println(testurl);
+		System.out.println(testurl);
 		URL url = new URL(testurl);
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -344,14 +368,7 @@ public class JsonTest {
 					}
 
 				}
-				// dsAhflInfo
-				/*
-				 * 
-				 * 
-				 * 파일 테이블 따로 빼기
-				 * 
-				 * 
-				 */
+
 				if (jsonNode.get("dsAhflInfo") != null) {
 					// System.out.println("dsAhflInfo" + " 발견 : " + jsonNode.get("dsAhflInfo"));//
 					// dsList출력
@@ -415,12 +432,13 @@ public class JsonTest {
 
 				}
 
-				dp = DetailPans.builder().panid(panid).applicationstartdate(ApplicationStartDate)
+				dp = DetailPans.builder().applicationstartdate(ApplicationStartDate)
 						.applicationenddate(ApplicationEndDate).winnersannouncement(WinnersAnnouncement)
 						.docstartdate(DocStartDate).docannouncement(DocAnnouncement).docenddate(DocEndDate)
 						.contractstartdate(ContractStartDate).contractenddate(ContractEndDate).area(AREA)
 						.address(ADDRESS).detailaddress(DETAILADDRESS).addressname(ADDRESSNAME).moveindate(MOVEINDATE)
 						.totalcount(TOTALCOUNT).fileinfolist(fileList).build();
+
 			}
 		} else {
 			System.out.println("Received data is not in JSON array format.");

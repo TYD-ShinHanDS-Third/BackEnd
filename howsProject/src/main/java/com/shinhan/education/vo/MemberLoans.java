@@ -2,10 +2,12 @@ package com.shinhan.education.vo;
 
 import java.sql.Blob;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -27,6 +29,7 @@ public class MemberLoans {
 	
    // @JsonIgnore
     @ManyToOne
+    @JoinColumn(name = "loanname", referencedColumnName = "loanname")
 	Loans loanname; //대출상품명(fk)
     
 	private String loanstate;//대출진행상태
@@ -36,6 +39,7 @@ public class MemberLoans {
 	
    // @JsonIgnore
     @ManyToOne
+	@JoinColumn(name = "memberid", referencedColumnName = "memberid")
     private Members memberid; // 회원아이디
     
    //BLOB타입으로 써야 pdf등 이진파일 내용을 저장할 수 있다. 

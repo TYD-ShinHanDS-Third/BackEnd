@@ -37,6 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/member/checkDuplicateId").permitAll()
 				.antMatchers("/member/delete").permitAll()
 				.antMatchers("/main").permitAll()
+				.antMatchers("/**").permitAll()
 				//.antMatchers("/member").hasRole("USER") // "/member" 경로로의 요청은 "USER" 권한을 가진 사용자에게만 허용됩니다. 즉, 해당 권한을 가지지
 														// 않은 사용자는 접근할 수 없다.
 				// .antMatchers("/admin/**").hasRole("ADMIN") //단일 권한 예시추가

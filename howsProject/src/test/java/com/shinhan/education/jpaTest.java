@@ -28,7 +28,7 @@ public class jpaTest {
 		String memberId = "ckdrua1";
 		String panid = "2015122300013854";
 		String location = "서울";
-		DetailPans dp =  dpRepo.findById(panid).get();
-		System.out.println(dp);
+		//DetailPans dp =  dpRepo.findById(panid).get();
+		//System.out.println(dp);
 	}
 }

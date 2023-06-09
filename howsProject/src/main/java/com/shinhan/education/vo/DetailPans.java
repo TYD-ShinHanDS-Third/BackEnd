@@ -7,12 +7,16 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +27,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"pan","fileinfolist"})
 @Entity
 @Builder
 @NoArgsConstructor
@@ -33,11 +37,17 @@ public class DetailPans implements Serializable{
 
 
 	@Id
-	private String panid;// 공고아이디
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private Long detailpanid;// 공고아이디
+	
 	private Date applicationstartdate;// 접수기간시작일
 	private Date applicationenddate;// 접수기간종료일
 	private Date winnersannouncement;// 당첨자발표일
-
+	@JsonIgnore
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "panid", referencedColumnName = "panid")
+	private Pans pan;
+	
 	private Date docstartdate;// 서류접수기간시작일
 	private Date docannouncement;// 서류제출대상자발표일
 	private Date docenddate;// 서류접수기간종료일
@@ -45,10 +55,8 @@ public class DetailPans implements Serializable{
 	private Date contractstartdate;// 계약기간시작일
 	private Date contractenddate;// 계약기간종료일
 	//
-//	private String FILETYPE;//파일구분명
-//	private String FILENAME;//첨부파일명
-//	private String FILEURL;//다운로드
 
+	@JsonIgnore
 	@OneToMany(mappedBy = "detailpans",cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<FileInfos> fileinfolist;
 

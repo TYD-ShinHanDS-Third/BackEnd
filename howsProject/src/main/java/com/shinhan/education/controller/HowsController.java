@@ -7,19 +7,25 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.shinhan.education.respository.DetailPanRepository;
+import com.shinhan.education.respository.LoansRepository;
 import com.shinhan.education.respository.PanFavRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.vo.DetailPans;
+import com.shinhan.education.vo.Houses;
+import com.shinhan.education.vo.Loans;
 import com.shinhan.education.vo.PanFavorites;
 import com.shinhan.education.vo.PanFavoritesId;
 import com.shinhan.education.vo.Pans;
@@ -34,6 +40,8 @@ public class HowsController {
 	PanFavRepository favRepo;
 	@Autowired
 	DetailPanRepository dpRepo;
+	@Autowired
+	LoansRepository loanRepo;
 
 	String getMemberId(String token) {
 		// String token =
@@ -52,8 +60,22 @@ public class HowsController {
 	}
 
 	@GetMapping("/notice") // 공고 조회
-	public List<Pans> allpans(@RequestBody String token) {
-		List<Pans> panList = panRepo.findAll();
+	public List<Pans> allpans(int page, int size, String token) {
+		System.out.println("요청 들어옴");
+		// PageRequest.of(int page, int size, sort)
+		// page : 요청하는 페이지 번호
+		// size : 한 페이지 당 조회할 크기 (기본값 : 20)
+		// sort : Sorting 설정 (기본값 : 오름차순)
+		// String token = request.getParameter("token");
+		// String page = (request.getParameter("page"));
+		// String size =(request.getParameter("size"));
+		// String token = null;
+		System.out.println("page : " + page);
+		System.out.println("size : " + size);
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
+		Page<Pans> panPage = panRepo.findAll(pageable);
+		List<Pans> panList = panPage.getContent();
 		if (token != null) {// 로그인 된 상태 -> 좋아요 확인하자
 			String memberid = getMemberId(token);
 			panList.forEach((pan) -> {
@@ -62,9 +84,10 @@ public class HowsController {
 				if (favorite.isPresent()) {
 					pan.setLike(1);
 				}
-				//System.out.println(pan);
+				// System.out.println(pan);
 			});
 		}
+
 		return panList;
 	}
 
@@ -100,15 +123,38 @@ public class HowsController {
 
 	// 지역별 공고 가져오기
 	@GetMapping(value = "/notice/{location}", produces = "text/plain;charset=UTF-8")
-	public List<Pans> selectByLocation(@PathVariable String location) {
-		List<Pans> loclist = panRepo.findByLocationContaining(location);
+	public List<Pans> selectByLocation(@PathVariable String location, HttpServletRequest request) {
+
+		int page = Integer.parseInt(request.getParameter("page"));
+		int size = Integer.parseInt(request.getParameter("size"));
+
+		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
+		List<Pans> loclist = panRepo.findByLocationContaining(location, pageable);
+
 		return loclist;
 	}
-	//공고 상세 조회
+
+	// 공고 상세 조회
 	@GetMapping(value = "/notice/detail")
-	public DetailPans selectbyid(@RequestBody String panid) {
-		DetailPans dp =  dpRepo.findById(panid).get();
+	public DetailPans selectbyid(String panid) {
+		System.out.println("공고 상세 요청 들어옴");
+		Pans pan = panRepo.findById(panid).get();
+		// System.out.println("pan" + pan );
+		DetailPans dp = dpRepo.findByPan(pan);// 객체라서 문제 발생
+		// System.out.println("detail pan : " + dp);
 		return dp;
+	}
+
+	@GetMapping(value = "/notice/find")
+	public List<Houses> selectByAddress(String houseaddress) {
+
+		return null;
+
+	}
+
+	@GetMapping(value = "notice/loan")
+	public List<Loans> loanlist() {
+		return (List<Loans>) loanRepo.findAll();
 	}
 
 }
