@@ -3,6 +3,7 @@ package com.shinhan.education.vo;
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
@@ -24,16 +25,17 @@ import lombok.NoArgsConstructor;
 public class PanFavorites {
 	
 	@Id
-	private String  panid; // 모집공고번호
+	private String panid; // 모집공고번호
 	
 	@Id
 	private String memberid; // 회원아이디
 	
-	@ManyToOne
-	@JoinColumn(name = "panid", referencedColumnName = "panid", insertable = false, updatable = false)
-	private Pans pans; // 참조하는 Pan 엔티티
+    // Pans와의 관계 설정
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "panid", referencedColumnName = "panid", insertable = false, updatable = false)
+    private Pans pans; // Pan 엔티티 참조
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "memberid", referencedColumnName = "memberid", insertable = false, updatable = false)
 	private Members mems; // 참조하는 Pan 엔티티
 	
