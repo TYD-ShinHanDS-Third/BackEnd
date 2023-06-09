@@ -40,9 +40,9 @@ public class MembersControllerTest {
 	//@Test
 	public void test5() {
 		//CRUD....delete
-		memberRepository.findByMemberid("ckdrua1").ifPresent(job->{
-			System.out.println(job + "존재한다.");
-			memberRepository.delete(job);
+		memberRepository.findByMemberid("ckdrua1").ifPresent(user->{
+			System.out.println(user + "존재한다.");
+			memberRepository.delete(user);
 		});
 	}
 	

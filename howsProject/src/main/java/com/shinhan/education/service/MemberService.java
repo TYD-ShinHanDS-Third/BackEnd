@@ -3,6 +3,7 @@ package com.shinhan.education.service;
 import java.util.List;
 
 import com.shinhan.education.vo.MemberSignUpRequest;
+import com.shinhan.education.vo.MemberUpdateRequest;
 
 public interface MemberService {
 	
@@ -23,4 +24,9 @@ public interface MemberService {
 
    // 회원탈퇴시 아이디 확인
     boolean delete(String memberId);
+  
+    // 회원 정보 수정
+    boolean update(MemberUpdateRequest request) throws Exception;
+    
+    
 }

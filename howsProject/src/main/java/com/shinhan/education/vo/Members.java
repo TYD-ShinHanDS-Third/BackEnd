@@ -1,21 +1,16 @@
 package com.shinhan.education.vo;
 
-import java.sql.Date;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.AllArgsConstructor;
@@ -58,6 +53,16 @@ public class Members {
 	
     public List<String> getRoleNames() {
         return Arrays.asList(roles.getRoleName());
+    }
+    
+    public void setBday(Date bday) {
+        // java.sql.Date로 변환하여 저장
+        this.bday = new java.sql.Date(bday.getTime());
+    }
+    
+    public void sethiredate(Date hiredate) {
+        // java.sql.Date로 변환하여 저장
+        this.hiredate = new java.sql.Date(bday.getTime());
     }
 }
 	
