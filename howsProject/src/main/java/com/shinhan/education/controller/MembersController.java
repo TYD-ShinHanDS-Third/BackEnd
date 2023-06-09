@@ -1,24 +1,30 @@
 package com.shinhan.education.controller;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.shinhan.education.jwt.JwtTokenProvider;
+import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberDeleteRequest;
+import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberLoginRequest;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
+import com.shinhan.education.vo.Members;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,25 +34,35 @@ import lombok.RequiredArgsConstructor;
 @RestController
 public class MembersController {
 	
+	 @Autowired
+	 private MemberRepository memberRepository;
+	
 	private final JwtTokenProvider jwtTokenProvider;
 	
 	@Autowired
 	private MemberService memberService;
 
-	//회원가입
-    @PostMapping("/join")
-    public ResponseEntity<String> join(@RequestBody MemberSignUpRequest request) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String encryptedPassword = passwordEncoder.encode(request.getPswd());
-        request.setPswd(encryptedPassword);
-        
-        try {
-            String memberId = memberService.signUp(request);
-            return ResponseEntity.ok("회원가입이 완료되었습니다. 회원 ID: " + memberId);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원가입 중 오류가 발생했습니다.");
-        }
-    }
+	// 회원가입
+	@PostMapping("/signup")
+	public ResponseEntity<String> signUp(@RequestBody MemberSignUpRequest request) {
+		System.out.println(request);
+	    try {
+	        if (!request.getPswd().equals(request.getCheckedpswd())) {
+	            throw new Exception("비밀번호가 일치하지 않습니다.");
+	        }
+
+	        // 회원 가입 요청 정보에 추가 정보가 포함되어 있는지 확인하고 회원 등급 설정
+	        boolean hasAdditionalInfo = request.hasAdditionalInfo();
+	        MemberLevel memberLevel = hasAdditionalInfo ? MemberLevel.GOLDUSER : MemberLevel.SILVERUSER;
+
+	        // 회원 가입 처리
+	        memberService.signUp(request, memberLevel);
+
+	        return new ResponseEntity<>("회원 가입이 완료되었습니다.", HttpStatus.OK);
+	    } catch (Exception e) {
+	        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+	    }
+	}
     
     //"Bearer "는 토큰 타입을 나타내는 접두사이다.
     //클라이언트는 이 토큰을 이후의 요청에 포함시켜 서버에 인증을 요청할 수 있다.
@@ -108,7 +124,7 @@ public class MembersController {
     @DeleteMapping("/delete")
     public ResponseEntity<String> delete(@RequestBody MemberDeleteRequest request) {
         try {
-            boolean isDeleted = memberService.delete(request.getMemberId());
+            boolean isDeleted = memberService.delete(request.getMemberid());
 
             if (isDeleted) {
                 return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
@@ -137,6 +153,22 @@ public class MembersController {
         }
     }
     
+    
+    //아이디 중복체크
+    @GetMapping("/checkDuplicateId")
+    public ResponseEntity<String> checkDuplicateId(@RequestParam("memberid") String memberid) {
+        // 데이터베이스에서 아이디 조회
+        Optional<Members> existingMember = memberRepository.findByMemberid(memberid);
+
+        if (existingMember.isPresent()) {
+            // 중복된 아이디인 경우
+            return ResponseEntity.ok("중복된아이디입니다.");
+        } else {
+            // 중복되지 않은 아이디인 경우
+            return ResponseEntity.ok("사용가능한아이디입니다.");
+        }
+    }
+
     
     
 }

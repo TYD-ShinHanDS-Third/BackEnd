@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -38,7 +39,9 @@ public class Members {
 	private String phone; // 휴대폰 번호
 	@Enumerated(EnumType.STRING)
 	private Role roles; // 사용자, 관리자, 은행원
-	private String memberlevel; // 기본정보 및 추가정보 입력여부에 따라 등급부여
+	@Enumerated(EnumType.STRING)
+	@Column(name = "memberlevel")
+	private MemberLevel memberLevel; // 기본정보 및 추가정보 입력여부에 따라 등급부여(SILVERUSER -> 기본정보만 입력한 유저, GOLDUSER -> 추가정보까지 입력한 유저)
 	private String accBank; // 계좌은행
 	private String accno; // 계좌
 	private Integer hasjob; // 직업유무
@@ -48,22 +51,20 @@ public class Members {
 
 	// 입력된 비밀번호와 저장된 비밀번호를 비교하여 유효성을 확인하는 메서드
 	public boolean isPswdValid(PasswordEncoder passwordEncoder, String password) {
-	    return passwordEncoder.matches(password, this.pswd);
+		return passwordEncoder.matches(password, this.pswd);
 	}
-	
-    public List<String> getRoleNames() {
-        return Arrays.asList(roles.getRoleName());
-    }
-    
-    public void setBday(Date bday) {
-        // java.sql.Date로 변환하여 저장
-        this.bday = new java.sql.Date(bday.getTime());
-    }
-    
-    public void sethiredate(Date hiredate) {
-        // java.sql.Date로 변환하여 저장
-        this.hiredate = new java.sql.Date(bday.getTime());
-    }
-}
-	
 
+	public List<String> getRoleNames() {
+		return Arrays.asList(roles.getRoleName());
+	}
+
+	public void setBday(Date bday) {
+		// java.sql.Date로 변환하여 저장
+		this.bday = new java.sql.Date(bday.getTime());
+	}
+
+	public void sethiredate(Date hiredate) {
+		// java.sql.Date로 변환하여 저장
+		this.hiredate = new java.sql.Date(bday.getTime());
+	}
+}

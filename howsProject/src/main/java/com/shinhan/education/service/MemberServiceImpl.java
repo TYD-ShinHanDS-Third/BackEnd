@@ -10,12 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.respository.MemberRepository;
+import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
 
 
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class MemberServiceImpl implements MemberService {
 
@@ -30,22 +31,18 @@ public class MemberServiceImpl implements MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
-
-    @Transactional
+    //회원가입
     @Override
-    public String signUp(MemberSignUpRequest requestDto) throws Exception {
-        if (memberRepository.findByMemberid(requestDto.getMemberid()).isPresent()) {
-            throw new Exception("이미 존재하는 아이디입니다.");
-        }
+    @Transactional
+    public void signUp(MemberSignUpRequest requestDto, MemberLevel memberLevel) throws Exception {
+        // 비밀번호 암호화
+        String encryptedPassword = passwordEncoder.encode(requestDto.getPswd());
 
-        if (!requestDto.getPswd().equals(requestDto.getCheckedpswd())) {
-            throw new Exception("비밀번호가 일치하지 않습니다.");
-        }
-
-        Members member = requestDto.toEntity(passwordEncoder);
-        memberRepository.save(member);
-
-        return member.getMemberid();
+        Members member = requestDto.toEntity();
+        member.setPswd(encryptedPassword);
+        member.setMemberLevel(memberLevel);
+        member = memberRepository.save(member);
+        System.out.println(member);
     }
 
     
@@ -102,8 +99,8 @@ public class MemberServiceImpl implements MemberService {
     
     //회원탈퇴
     @Override
-    public boolean delete(String memberId) {
-        Optional<Members> memberOptional = memberRepository.findByMemberid(memberId);
+    public boolean delete(String memberid) {
+        Optional<Members> memberOptional = memberRepository.findByMemberid(memberid);
 
         if (memberOptional.isPresent()) {
             Members member = memberOptional.get();
@@ -132,6 +129,4 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
         return true;
     }
-    
-    
 }

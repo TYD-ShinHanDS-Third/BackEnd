@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberDeleteRequest {
-    private String memberId; // 탈퇴할 회원 아이디
+    private String memberid; // 탈퇴할 회원 아이디
 }

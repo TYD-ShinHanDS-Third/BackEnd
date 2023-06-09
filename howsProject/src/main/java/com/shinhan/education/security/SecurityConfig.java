@@ -31,8 +31,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authorizeRequests() // 요청에 대한 인가 설정을 시작
 				.antMatchers("/member/login").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
-				.antMatchers("/member/join").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
+				.antMatchers("/member/signup").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
 				.antMatchers("/member/login-success").permitAll()
+				.antMatchers("/member/update").permitAll()
+				.antMatchers("/member/checkDuplicateId").permitAll()
+				.antMatchers("/member/delete").permitAll()
 				.antMatchers("/main").permitAll()
 				//.antMatchers("/member").hasRole("USER") // "/member" 경로로의 요청은 "USER" 권한을 가진 사용자에게만 허용됩니다. 즉, 해당 권한을 가지지
 														// 않은 사용자는 접근할 수 없다.
