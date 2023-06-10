@@ -17,5 +17,5 @@ public class MemberUpdateRequest {
     private Integer hasJob; // 수정할 직업 유무/
     private Date hiredate; // 수정할 입사일/
     private Integer marry; // 수정할 결혼 유무/
-    private int haschild; // 수정할 자녀 수/
+    private Integer haschild; // 수정할 자녀 수/
 }

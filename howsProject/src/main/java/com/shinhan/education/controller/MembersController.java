@@ -1,14 +1,15 @@
 package com.shinhan.education.controller;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.service.MemberService;
+import com.shinhan.education.vo.MemberDTO;
 import com.shinhan.education.vo.MemberDeleteRequest;
 import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberLoginRequest;
@@ -45,12 +47,8 @@ public class MembersController {
 	// 회원가입
 	@PostMapping("/signup")
 	public ResponseEntity<String> signUp(@RequestBody MemberSignUpRequest request) {
-		System.out.println(request);
 	    try {
-	        if (!request.getPswd().equals(request.getCheckedpswd())) {
-	            throw new Exception("비밀번호가 일치하지 않습니다.");
-	        }
-
+	        
 	        // 회원 가입 요청 정보에 추가 정보가 포함되어 있는지 확인하고 회원 등급 설정
 	        boolean hasAdditionalInfo = request.hasAdditionalInfo();
 	        MemberLevel memberLevel = hasAdditionalInfo ? MemberLevel.GOLDUSER : MemberLevel.SILVERUSER;
@@ -58,7 +56,7 @@ public class MembersController {
 	        // 회원 가입 처리
 	        memberService.signUp(request, memberLevel);
 
-	        return new ResponseEntity<>("회원 가입이 완료되었습니다.", HttpStatus.OK);
+	        return new ResponseEntity<>("success.", HttpStatus.OK);
 	    } catch (Exception e) {
 	        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 	    }
@@ -157,6 +155,7 @@ public class MembersController {
     //아이디 중복체크
     @GetMapping("/checkDuplicateId")
     public ResponseEntity<String> checkDuplicateId(@RequestParam("memberid") String memberid) {
+    	System.out.println("ff");
         // 데이터베이스에서 아이디 조회
         Optional<Members> existingMember = memberRepository.findByMemberid(memberid);
 
@@ -169,6 +168,38 @@ public class MembersController {
         }
     }
 
+    //클라이언트에게 회원가입된 회원정보리스트 전달
+    @GetMapping("/users")
+    public List<MemberDTO> getMemberList() {
+        List<MemberDTO> memberDTOList = memberService.getMembers();
+        return memberDTOList;
+    }
     
-    
+    //관리자가 사용자 Roles 수정
+    @PutMapping("/members/{memberId}/roles")
+    public ResponseEntity<String> updateMemberRoles(@PathVariable String memberId, @RequestBody List<String> roles) {
+        try {
+            // 회원 조회
+            Optional<Members> memberOptional = memberService.getMemberByid(memberId);
+            
+            if (!memberOptional.isPresent()) {
+                // 회원이 존재하지 않을 경우 404 응답 반환
+                return ResponseEntity.notFound().build();
+            }
+
+            Members member = memberOptional.get();
+            
+            // 회원의 roles 설정
+            member.setRoles(roles);
+            
+            // 회원 업데이트
+            memberService.updateMemberRoles(memberId, roles);
+            
+            // 업데이트 완료 메시지 반환
+            return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
+        } catch (Exception e) {
+            // 서버 오류 발생 시 500 응답 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
+        }
+    }
 }
