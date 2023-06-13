@@ -34,8 +34,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/member/signup").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
 				.antMatchers("/member/login-success").permitAll()
 				.antMatchers("/member/update").permitAll()
+				.antMatchers("/member/users").permitAll()
 				.antMatchers("/member/checkDuplicateId").permitAll()
 				.antMatchers("/member/delete").permitAll()
+				.antMatchers("/member/members/{memberId}/roles").permitAll()
 				.antMatchers("/main").permitAll()
 				.antMatchers("/**").permitAll()
 				//.antMatchers("/member").hasRole("USER") // "/member" 경로로의 요청은 "USER" 권한을 가진 사용자에게만 허용됩니다. 즉, 해당 권한을 가지지
@@ -59,6 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(userDetailsService,memberService);
 		return jwtTokenProvider;
 	}
+    
 
 	@Override // WebSecurity를 통해 HTTP 요청에 대한 웹 기반 보안을 구성
 	public void configure(WebSecurity web) throws Exception {

@@ -1,8 +1,10 @@
 package com.shinhan.education.vo;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -44,10 +46,11 @@ public class Members {
 	private MemberLevel memberLevel; // 기본정보 및 추가정보 입력여부에 따라 등급부여(SILVERUSER -> 기본정보만 입력한 유저, GOLDUSER -> 추가정보까지 입력한 유저)
 	private String accBank; // 계좌은행
 	private String accno; // 계좌
+	private String jobname; // 직장명
 	private Integer hasjob; // 직업유무
 	private Date hiredate; // 입사일
 	private Integer marry; // 결혼유무
-	private int haschild; // 자녀 수
+	private Integer haschild; // 자녀 수
 
 	// 입력된 비밀번호와 저장된 비밀번호를 비교하여 유효성을 확인하는 메서드
 	public boolean isPswdValid(PasswordEncoder passwordEncoder, String password) {
@@ -57,14 +60,21 @@ public class Members {
 	public List<String> getRoleNames() {
 		return Arrays.asList(roles.getRoleName());
 	}
-
+	// java.sql.Date로 변환하여 저장
 	public void setBday(Date bday) {
-		// java.sql.Date로 변환하여 저장
+	
 		this.bday = new java.sql.Date(bday.getTime());
 	}
-
+	// java.sql.Date로 변환하여 저장
 	public void sethiredate(Date hiredate) {
-		// java.sql.Date로 변환하여 저장
+		
 		this.hiredate = new java.sql.Date(bday.getTime());
 	}
+	//회원의 역할을 설정함
+	public void setRoles(List<String> roleNames) {
+	    if (!roleNames.isEmpty()) {
+	        this.roles = Role.valueOf(roleNames.get(0));
+	    }
+	}
+
 }

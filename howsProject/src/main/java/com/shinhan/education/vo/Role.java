@@ -1,5 +1,6 @@
 package com.shinhan.education.vo;
 
+//열거형
 public enum Role {
     USER("User"),
     ADMIN("Admin"),
