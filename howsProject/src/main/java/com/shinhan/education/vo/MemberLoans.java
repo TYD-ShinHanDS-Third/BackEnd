@@ -2,7 +2,6 @@ package com.shinhan.education.vo;
 
 import java.sql.Blob;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,10 +12,14 @@ import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
 @Entity
 @AllArgsConstructor
@@ -25,17 +28,17 @@ import lombok.NoArgsConstructor;
 public class MemberLoans {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int memloanid; //대출코드(pk)
+	private Integer memloanid; //대출코드(pk)
 	
    // @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "loanname", referencedColumnName = "loanname")
 	Loans loanname; //대출상품명(fk)
-    
+
 	private String loanstate;//대출진행상태
 	private String applyurl;//대출신청url
 	private String exlimit;//예상한도
-	
+
 	
    // @JsonIgnore
     @ManyToOne

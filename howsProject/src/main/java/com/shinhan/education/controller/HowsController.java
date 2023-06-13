@@ -1,7 +1,11 @@
 package com.shinhan.education.controller;
 
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,33 +19,70 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.shinhan.education.respository.DetailPanRepository;
+import com.shinhan.education.respository.HanaRepository;
+import com.shinhan.education.respository.KookminRepository;
 import com.shinhan.education.respository.LoansRepository;
+import com.shinhan.education.respository.MemberLoanRepository;
+import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.respository.PanFavRepository;
 import com.shinhan.education.respository.PanRepository;
+import com.shinhan.education.respository.ShinhanRepository;
+import com.shinhan.education.respository.WooriRepository;
 import com.shinhan.education.vo.DetailPans;
 import com.shinhan.education.vo.Houses;
 import com.shinhan.education.vo.Loans;
+import com.shinhan.education.vo.MemberLoans;
+import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.PanFavorites;
 import com.shinhan.education.vo.PanFavoritesId;
 import com.shinhan.education.vo.Pans;
 import com.shinhan.education.vo.Payload;
+import com.shinhan.education.vo.RequestVO;
 
 @RestController
 @RequestMapping("/hows")
 public class HowsController {
 	@Autowired
 	PanRepository panRepo;
+
 	@Autowired
 	PanFavRepository favRepo;
+
 	@Autowired
 	DetailPanRepository dpRepo;
+
 	@Autowired
 	LoansRepository loanRepo;
+
+	@Autowired
+	ShinhanRepository shinhanRepo;
+
+	@Autowired
+	KookminRepository kookminRepo;
+
+	@Autowired
+	WooriRepository wooriRepo;
+
+	@Autowired
+	HanaRepository hanaRepo;
+
+	@Autowired
+	MemberLoanRepository memloanRepo;
+
+	@Autowired
+	MemberRepository memRepo;
 
 	String getMemberId(String token) {
 		// String token =
@@ -55,20 +96,21 @@ public class HowsController {
 
 		Payload payload = gson.fromJson(payloadJson, Payload.class);
 		String memberid = payload.getSub();
-		System.out.println(memberid);
+		System.out.println("memberid : " + memberid);
 		return memberid;
 	}
 
 	@GetMapping("/notice") // 공고 조회
-	public List<Pans> allpans(int page, int size, String token) {
-		System.out.println("요청 들어옴");
+	public RequestVO<List<Pans>> allpans(HttpServletRequest request) {
+		System.err.println("요청 들어옴");
 		// PageRequest.of(int page, int size, sort)
 		// page : 요청하는 페이지 번호
 		// size : 한 페이지 당 조회할 크기 (기본값 : 20)
 		// sort : Sorting 설정 (기본값 : 오름차순)
-		// String token = request.getParameter("token");
-		// String page = (request.getParameter("page"));
-		// String size =(request.getParameter("size"));
+		String token = request.getHeader("token");
+		System.out.println("token : " + token);
+		int page = Integer.parseInt(request.getParameter("page"));
+		int size = Integer.parseInt(request.getParameter("size"));
 		// String token = null;
 		System.out.println("page : " + page);
 		System.out.println("size : " + size);
@@ -76,8 +118,10 @@ public class HowsController {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
 		Page<Pans> panPage = panRepo.findAll(pageable);
 		List<Pans> panList = panPage.getContent();
+
 		if (token != null) {// 로그인 된 상태 -> 좋아요 확인하자
 			String memberid = getMemberId(token);
+			System.out.println("memberid : " + memberid);
 			panList.forEach((pan) -> {
 				PanFavoritesId id = new PanFavoritesId(pan.getPanid(), memberid);
 				Optional<PanFavorites> favorite = (Optional<PanFavorites>) favRepo.findById(id);
@@ -87,14 +131,44 @@ public class HowsController {
 				// System.out.println(pan);
 			});
 		}
-
-		return panList;
+		RequestVO<List<Pans>> r = new RequestVO<List<Pans>>();
+		int total = panRepo.countAllPans();
+		r.setObj(panList);
+		r.setTotal(total);
+		panList.forEach((x) -> {
+			System.out.println(x);
+		});
+		return r;
 	}
 
 	@PostMapping("/notice") // 공고 좋아요
-	public String addLike(HttpServletRequest request) {
-		String panid = request.getParameter("panid");
-		String token = request.getParameter("token");
+	public String addLike(HttpServletRequest request, @RequestBody String requestBody) {
+		System.out.println("요청 URL: " + request.getRequestURL().toString());
+		System.err.println("좋아요요청 들어옴");
+		System.out.println(requestBody);
+		System.out.println(request.toString());
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode;
+		String panid = null;
+		try {
+			jsonNode = objectMapper.readTree(requestBody);
+			panid = jsonNode.get("panid").asText();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// String panid = requestBody;
+		String token = request.getHeader("token");
+		System.out.println("panid : " + panid);
+		if (token == null) {
+			System.out.println("좋아요 실패 토큰 없음");
+			return "좋아요 실패 토큰 없음";
+		}
+
 		String memberId = getMemberId(token);
 
 		PanFavoritesId id = new PanFavoritesId(panid, memberId);
@@ -102,17 +176,36 @@ public class HowsController {
 		Pans pan = panRepo.findById(panid).orElse(null);
 		if (pan == null)
 			return "fail";
-		PanFavorites panfav = PanFavorites.builder().panid(pan.getPanid()).memberid(memberId).panname(pan.getPanname())
-				.panstartdate(pan.getPanstartdate()).panenddate(pan.getPanenddate()).build();
+		PanFavorites panfav = PanFavorites.builder().panid(pan.getPanid()).memberid(memberId).title(pan.getPanname())
+				.start(pan.getPanstartdate()).end(pan.getPanenddate()).build();
 		favRepo.save(panfav);
+		System.out.println("좋아요 성공");
 		return "like success";
 	}
 
 	@DeleteMapping("/notice") // 공고 좋아요 취소
 	public String deletelike(HttpServletRequest request) {
-
+		System.err.println("좋아요취소요청 들어옴");
+		String token = request.getHeader("token");
 		String panid = request.getParameter("panid");
-		String token = request.getParameter("token");
+		System.out.println(panid);
+//		String panid = null;
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		JsonNode jsonNode;
+//		
+//		
+//		try {
+//			jsonNode = objectMapper.readTree(requestBody);
+//			 panid = jsonNode.get("panid").asText();
+//		} catch (JsonMappingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (JsonProcessingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+
 		String memberId = getMemberId(token);
 		PanFavoritesId id = new PanFavoritesId(panid, memberId);
 		favRepo.findById(id).ifPresent(panFavorites -> {
@@ -122,22 +215,34 @@ public class HowsController {
 	}
 
 	// 지역별 공고 가져오기
-	@GetMapping(value = "/notice/{location}", produces = "text/plain;charset=UTF-8")
-	public List<Pans> selectByLocation(@PathVariable String location, HttpServletRequest request) {
+	@GetMapping(value = "/notice/{location}", produces = "application/json;charset=UTF-8")
+	public RequestVO<List<Pans>> selectByLocation(@PathVariable String location, HttpServletRequest request) {
+		System.err.println(location + "지역별 공고 가져오기 요청 들어옴");
 
 		int page = Integer.parseInt(request.getParameter("page"));
 		int size = Integer.parseInt(request.getParameter("size"));
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
-		List<Pans> loclist = panRepo.findByLocationContaining(location, pageable);
+		Page<Pans> loclist = panRepo.findByLocationContaining(location, pageable);
 
-		return loclist;
+		RequestVO<List<Pans>> r = new RequestVO<List<Pans>>();
+
+		List<Pans> panList = loclist.getContent();
+		panList.forEach((x) -> {
+			System.out.println(x);
+		});
+		r.setObj(panList);
+		int total = (int) loclist.getTotalElements();
+		r.setTotal(total);
+		System.out.println("R : " + r);
+		return r;
+
 	}
 
 	// 공고 상세 조회
 	@GetMapping(value = "/notice/detail")
 	public DetailPans selectbyid(String panid) {
-		System.out.println("공고 상세 요청 들어옴");
+		System.err.println("공고 상세 요청 들어옴");
 		Pans pan = panRepo.findById(panid).get();
 		// System.out.println("pan" + pan );
 		DetailPans dp = dpRepo.findByPan(pan);// 객체라서 문제 발생
@@ -145,16 +250,343 @@ public class HowsController {
 		return dp;
 	}
 
+	@GetMapping(value = "/notice/fav/{num}") // 관심 공고 조회 & 모집 중인 공고 조회
+	public RequestVO<List<Pans>> selectByFav(@PathVariable int num, HttpServletRequest request) {
+		System.err.println("관심 공고 조회 & 모집 중인 공고 조회 요청 들어옴");
+		List<Pans> panList = new ArrayList<>();
+		int page = Integer.parseInt(request.getParameter("page"));
+		int size = Integer.parseInt(request.getParameter("size"));
+		String token = request.getHeader("token");
+		String memberid = getMemberId(token);
+		System.out.println("notice/fav 요청 들어옴");
+		System.out.println("page : " + page);
+		System.out.println("size : " + size);
+		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
+		Page<Pans> panPage = null;
+		if (num == 1) {
+			System.err.println("1. 관심공고");
+			panPage = panRepo.findPansByMemberId(memberid, pageable);// 수정->fav
+			panPage.forEach((pan) -> {
+				pan.setLike(1);
+			});
+		}
+		if (num == 2) {
+			System.err.println("2. 모집중");
+			panPage = panRepo.findByPanstate("접수마감", pageable);
+//			panlist.addall(panRepo.findByPanstate("접수중", pageable));
+//			panlist.addall(panRepo.findByPanstate("정정공고중", pageable));
+		}
+		if (num == 3) {
+			System.err.println("3. 관심 + 모집공고");
+			panPage = panRepo.findPansByMemberIdAndPanstate(memberid, "접수마감", pageable);
+			panPage.forEach((pan) -> {
+				pan.setLike(1);
+			});
+		}
+		System.out.println(panList);
+
+		RequestVO<List<Pans>> r = new RequestVO<List<Pans>>();
+		long total = panPage.getTotalElements();
+		panList = panPage.getContent();
+		r.setObj(panList);
+		r.setTotal((int) total);
+		System.out.println("panList");
+		panList.forEach((x) -> {
+			System.out.println(x);
+		});
+		System.out.println("totalcount : " + total);
+		return r;
+	}
+
+	// 주택 위치를 검색
+	// ex) { houseaddress : “서울시 마포구” }
+	// { 도로명 주소from houses }
+	// ?
 	@GetMapping(value = "/notice/find")
 	public List<Houses> selectByAddress(String houseaddress) {
-
 		return null;
+	}
+
+	// 대출 전체 목록
+	@GetMapping(value = "/loan")
+	public RequestVO<List<Loans>> loanlist(HttpServletRequest request) {
+		int page = Integer.parseInt(request.getParameter("page"));
+		int size = Integer.parseInt(request.getParameter("size"));
+		RequestVO<List<Loans>> r = new RequestVO<List<Loans>>();
+		System.out.println("대출 전체 목록 요청 들어옴");
+		Pageable pageable = PageRequest.of(page, size, Sort.by("loanname").ascending());
+
+		Page<Loans> loanlist = loanRepo.findAll(pageable);
+		List<Loans> loans = loanlist.getContent();
+		int total = (int) loanlist.getTotalElements();
+		r.setObj(loans);
+		r.setTotal(total);
+		return r;
+	}
+
+	// 상세 대출 html
+	@GetMapping(value = { "/loan/detail", "/admin/consult/chartoom" })
+	public <T> T detailhtml(HttpServletRequest request) {
+		System.out.println("상세 대출 html 요청 들어옴");
+		String bankname = request.getParameter("bankname");
+		String loanname = request.getParameter("loanname");// 변수 이름 확인
+
+		if (bankname.equals("신한")) {
+			return (T) shinhanRepo.findById(loanname);
+		} else if (bankname.equals("국민")) {
+			return (T) kookminRepo.findById(loanname);
+		} else if (bankname.equals("하나")) {
+			return (T) hanaRepo.findById(loanname);
+		} else if (bankname.equals("우리")) {
+			return (T) wooriRepo.findById(loanname);
+		} else
+			return null;
+	}
+
+	// 상세 대출 html 상담용
+	@GetMapping("/loan/detail/consult")
+	public <T> T detailhtmlforconsult(HttpServletRequest request) {
+		System.out.println("상세 대출상담 요청 들어옴");
+		String bankname = request.getParameter("bankname");
+		String loanname = request.getParameter("loanname");// 변수 이름 확인
+
+		if (bankname.equals("신한")) {
+			return (T) shinhanRepo.findById(loanname);
+		} else if (bankname.equals("국민")) {
+			return (T) kookminRepo.findById(loanname);
+		} else if (bankname.equals("하나")) {
+			return (T) hanaRepo.findById(loanname);
+		} else if (bankname.equals("우리")) {
+			return (T) wooriRepo.findById(loanname);
+		} else
+			return null;
+	}
+
+	// member loans 테이블에 서류 제출
+	@PostMapping("/loan/detail/limit/uploaddocs")
+	public String insertDocs(HttpServletRequest request, @RequestPart(value = "contentsData") MemberLoans memloanVO) {
+		System.out.println("서류 제출 요청 들어옴");
+		String token = request.getParameter("token");
+		String memberid = getMemberId(token);
+		String loanname = request.getParameter("loan");
+		String loanstate = "";
+		String applyurl = request.getParameter("applyurl");
+
+		Members mem = memRepo.findById(memberid).get();
+		Loans loan = loanRepo.findById(loanname).get();
+		memloanVO.setMemberid(mem);
+		memloanVO.setLoanname(loan);
+
+		memloanRepo.save(memloanVO);
+
+		return "완료";
+	}
+
+	// 공고 즐겨찾기 목록
+	@GetMapping(value = "/my/mypage/pan")
+	public List<PanFavorites> mypagefav(HttpServletRequest request) {
+		System.err.println("마이페이지 공고 즐겨찾기 목록 요청 들어옴");
+
+		List<PanFavorites> panfavList = new ArrayList<>();
+		// int page = Integer.parseInt(request.getParameter("page"));
+		// int size = Integer.parseInt(request.getParameter("size"));
+		String token = request.getHeader("token");
+		System.out.println("token : " + token);
+		String memberid = getMemberId(token);
+
+		System.out.println("mypage 요청 들어옴");
+		// System.out.println("page : " + page);
+		// System.out.println("size : " + size);
+		// Pageable pageable = PageRequest.of(page, size,
+		// Sort.by("panstartdate").ascending());
+
+		panfavList = favRepo.findByMemberidOrderByStart(memberid);
+		panfavList.forEach((fav) -> {
+			String panname = fav.getPans().getPanname();
+			fav.setPanname(panname);
+		});
+		System.out.println("pan: " + panfavList);
+		panfavList.forEach((x) -> {
+			System.out.println(x);
+		});
+		return panfavList;
+	}
+
+	// 마이페이지 대출목록
+	@GetMapping(value = "/my/mypage/loan")
+	public List<MemberLoans> mypageloan(HttpServletRequest request) {
+		System.err.println("마이페이지 대출목록 요청 들어옴");
+		String token = request.getHeader("token");
+		String memberid = getMemberId(token);
+
+		System.out.println("mypage 요청 들어옴");
+		Members mem = memRepo.findById(memberid).get();
+		List<MemberLoans> mllist = memloanRepo.findByMemberid(mem);
+		System.out.println("대출목록 : ");
+		mllist.forEach((x) -> {
+			System.out.println(x);
+		});
+		return mllist;
 
 	}
 
-	@GetMapping(value = "notice/loan")
-	public List<Loans> loanlist() {
-		return (List<Loans>) loanRepo.findAll();
+	@GetMapping("/admin/consult") // 관리자와 회원의 상담목록
+	public List<Map<String, Object>> consultlist(HttpServletRequest request) {
+		Integer page = Integer.parseInt(request.getParameter("page"));
+		Integer size = Integer.parseInt(request.getParameter("size"));
+		Pageable pageable = PageRequest.of(page, size);
+		
+		List<Map<String, Object>> objList = new ArrayList<>();
+		Page<MemberLoans> mllist2 = memloanRepo.findAll(pageable);
+		Long total = mllist2.getTotalElements();
+		List<MemberLoans> mllist = mllist2.getContent();
+		mllist.forEach((mem) -> {
+			Map<String, Object> obj = new HashMap<>();
+			obj.put("loanid", mem.getMemloanid());
+			obj.put("memberid", mem.getMemberid());
+			obj.put("membername", mem.getMemberid().getMembername());
+			obj.put("bankname", mem.getLoanname().getBankname());
+			obj.put("loanname", mem.getLoanname());
+			obj.put("loanstate", mem.getLoanstate());
+			obj.put("total", total);
+			objList.add(obj);
+		});
+
+		objList.sort(Comparator.comparing(m -> m.get("membername").toString()));
+		// System.out.println(objList);
+		return objList;
 	}
 
+	@GetMapping("/admin/form") /*
+								 * 관리자가 회원의 서류 제출 내역 목록 확인하기 위한 회원 리스트
+								 * 
+								 * 대출심사대기중인 회원의 목록을 보여준다
+								 */
+	public List<Map<String, Object>> getMemberDocs(HttpServletRequest request) {
+		//Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
+		Integer page = Integer.parseInt(request.getParameter("page"));
+		Integer size = Integer.parseInt(request.getParameter("size"));
+
+		Pageable pageable = PageRequest.of(page, size);
+		Page<MemberLoans> mllist2 = memloanRepo.findByState("대출심사대기", pageable);// 대출중인 회원을 찾자
+		Long total = mllist2.getTotalElements();
+		List<MemberLoans> mllist = mllist2.getContent();
+		List<Map<String, Object>> objList = new ArrayList<>();
+		mllist.forEach((mem) -> {
+			Map<String, Object> obj = new HashMap<>();
+			obj.put("loanid", mem.getMemloanid());
+			obj.put("memberid", mem.getMemberid());
+			obj.put("membername", mem.getMemberid().getMembername());
+			obj.put("bankname", mem.getLoanname().getBankname());
+			obj.put("loanname", mem.getLoanname());
+			obj.put("loanstate", mem.getLoanstate());
+			obj.put("total", total);
+
+			objList.add(obj);
+		});
+
+		return objList;
+
+	}
+	
+	@GetMapping("/admin/form/checklist")//회원 한명당 상세 제출 내역 확인
+	public Map<String,Object> getform(HttpServletRequest request) {
+		Map<String,Object> objlist = new HashMap<>();
+		String loanid = request.getParameter("loanid");
+		
+		
+		MemberLoans ml =  memloanRepo.findById(Integer.parseInt(loanid)).get();
+		objlist.put("loanid", ml.getMemloanid());
+		objlist.put("membername", ml.getMemberid().getMembername());
+		objlist.put("bankname", ml.getLoanname().getBankname());
+		objlist.put("loanname", ml.getLoanname());
+		objlist.put("loanstate", ml.getLoanstate());
+		
+		objlist.put("leaseContract", ml.getLeaseContract());
+		objlist.put("propertyRegistration", ml.getPropertyRegistration());
+		objlist.put("depositReceipt", ml.getDepositReceipt());
+		objlist.put("residenceRegistration", ml.getResidenceRegistration());
+		objlist.put("identificationCard", ml.getIdentificationCard());
+		objlist.put("incomeProof", ml.getIncomeProof());
+		objlist.put("marriageProof", ml.getMarriageProof());
+		objlist.put("employmentProof", ml.getEmploymentProof());
+		objlist.put("businessProof", ml.getBusinessProof());
+		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+		
+		return objlist;
+		//bankname이 전달되나??
+		
+	} 
+	
+	@PutMapping("/admin/form/checklist")//대출승인대기로 바꾼다
+	public String formchecked(HttpServletRequest request) {
+		String loanid = request.getParameter("loanid");
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
+		ml.setLoanstate("대출승인대기");
+		memloanRepo.save(ml);
+		return  "대출심사완료!!";
+	}
+	
+	@GetMapping("/bank/form")//대출승인대기중인 목록을 가져온다
+	public List<Map<String, Object>> getMemberDocs2(HttpServletRequest request) {
+		//Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
+		Integer page = Integer.parseInt(request.getParameter("page"));
+		Integer size = Integer.parseInt(request.getParameter("size"));
+
+		Pageable pageable = PageRequest.of(page, size);
+		Page<MemberLoans> mllist2 = memloanRepo.findByState("대출승인대기", pageable);// 대출중인 회원을 찾자
+		Long total = mllist2.getTotalElements();
+		List<MemberLoans> mllist = mllist2.getContent();
+		List<Map<String, Object>> objList = new ArrayList<>();
+		mllist.forEach((mem) -> {
+			Map<String, Object> obj = new HashMap<>();
+			obj.put("loanid", mem.getMemloanid());
+			obj.put("memberid", mem.getMemberid());
+			obj.put("membername", mem.getMemberid().getMembername());
+			obj.put("bankname", mem.getLoanname().getBankname());
+			obj.put("loanname", mem.getLoanname());
+			obj.put("loanstate", mem.getLoanstate());
+			obj.put("total", total);
+
+			objList.add(obj);
+		});
+
+		return objList;
+	}
+
+	@GetMapping("/bank/loanlist/detail")//은행원이 한명의 회원의 제출된 서류 목록을 가져온다
+	public Map<String,Object> getform2(HttpServletRequest request) {
+		Map<String,Object> objlist = new HashMap<>();
+		String loanid = request.getParameter("loanid");
+		
+		
+		MemberLoans ml =  memloanRepo.findById(Integer.parseInt(loanid)).get();
+		objlist.put("loanid", ml.getMemloanid());
+		objlist.put("membername", ml.getMemberid().getMembername());
+		objlist.put("bankname", ml.getLoanname().getBankname());
+		objlist.put("loanname", ml.getLoanname());
+		objlist.put("loanstate", ml.getLoanstate());
+		
+		objlist.put("leaseContract", ml.getLeaseContract());
+		objlist.put("propertyRegistration", ml.getPropertyRegistration());
+		objlist.put("depositReceipt", ml.getDepositReceipt());
+		objlist.put("residenceRegistration", ml.getResidenceRegistration());
+		objlist.put("identificationCard", ml.getIdentificationCard());
+		objlist.put("incomeProof", ml.getIncomeProof());
+		objlist.put("marriageProof", ml.getMarriageProof());
+		objlist.put("employmentProof", ml.getEmploymentProof());
+		objlist.put("businessProof", ml.getBusinessProof());
+		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+		
+		return objlist;
+	}
+	@PutMapping("/bank/loanlist/detail")//대출승인대기로 바꾼다
+	public String formchecked2(HttpServletRequest request) {
+		String loanid = request.getParameter("loanid");
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
+		ml.setLoanstate("대출승인완료");
+		memloanRepo.save(ml);
+		return  "대출승인완료!!";
+	}
+	
 }

@@ -41,7 +41,7 @@ class HowsProjectApplicationTests {
 PanRepository panRepo;
 @Autowired
 DetailPanRepository dpRepo;
-	@Test
+	//@Test
 	void intoloans() {
 		List<Loans> loanList = new ArrayList<>();
 		List<ShinhanHTML> slit = (List<ShinhanHTML>) shinhanRepo.findAll();
