@@ -432,6 +432,7 @@ public class HowsController {
 
 	@GetMapping("/admin/consult") // 관리자와 회원의 상담목록
 	public List<Map<String, Object>> consultlist(HttpServletRequest request) {
+		System.err.println("관리자와 회원의 상담목록");
 		Integer page = Integer.parseInt(request.getParameter("page"));
 		Integer size = Integer.parseInt(request.getParameter("size"));
 		Pageable pageable = PageRequest.of(page, size);
@@ -440,6 +441,7 @@ public class HowsController {
 		Page<MemberLoans> mllist2 = memloanRepo.findAll(pageable);
 		Long total = mllist2.getTotalElements();
 		List<MemberLoans> mllist = mllist2.getContent();
+		System.out.println("mllist : " + mllist);
 		mllist.forEach((mem) -> {
 			Map<String, Object> obj = new HashMap<>();
 			obj.put("loanid", mem.getMemloanid());
@@ -454,6 +456,7 @@ public class HowsController {
 
 		objList.sort(Comparator.comparing(m -> m.get("membername").toString()));
 		// System.out.println(objList);
+		System.out.println("return map : " + objList);
 		return objList;
 	}
 
