@@ -120,27 +120,6 @@ public class MembersController {
 		}
 	}
     
-//    로그아웃시 쿠키(토큰) 삭제
-//    @GetMapping("/logout")
-//    public String logout(HttpServletResponse response) {
-//        // 쿠키 삭제
-//    	// "Authorization" 이름의 쿠키를 생성하고 값을 null로 설정합니다. 이렇게 생성된 쿠키는 클라이언트에게 전달되어 토큰을 삭제하는 역할을 수행
-//        Cookie cookie = new Cookie("Authorization", null);
-//        // 코드는 쿠키의 유효 기간을 0으로 설정하여 즉시 만료되도록 합니다. 이를 통해 클라이언트 측에서 해당 쿠키를 삭제할 수 있게 됩니다.
-//        cookie.setMaxAge(0);
-//        //코드는 쿠키의 경로를 "/"로 설정합니다. 이는 쿠키가 전체 애플리케이션의 경로에서 유효하도록 합니다.
-//        cookie.setPath("/");
-//        //코드는 응답에 쿠키를 추가합니다. 이를 통해 클라이언트에게 쿠키가 전달되어 삭제되도록 한다.
-//        response.addCookie(cookie);
-//        
-//        // 로그아웃 후 리다이렉트할 경로
-//        return "redirect:/main";
-//    }
-    
-    //클라이언트가 로그아웃을 요청보내면 서버쪽에서 저렇게 쿠키삭제를 로직을 보내고 
-    //클라이언트는 document.cookie = "Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; 이렇게 작성하여 쿠리를 삭제한다.
-    //위의 코드는 "Authorization" 이름의 쿠키를 현재 시간보다 이전으로 설정하여 삭제하는 것을 의미합니다.
-    
     //회원탈퇴(토큰으로 완료)
     @DeleteMapping("/delete")
     public ResponseEntity<String> delete(HttpServletRequest request) {

@@ -42,5 +42,5 @@ public interface MemberService {
 	
 	//회원조회
 	public Optional<Members> getMemberByid(String memberId);
-    
+	
 }
