@@ -1,13 +1,17 @@
 package com.shinhan.education.service;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.gson.Gson;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.vo.MemberDTO;
@@ -15,10 +19,28 @@ import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
+import com.shinhan.education.vo.Payload;
 
 @Transactional
 @Service
 public class MemberServiceImpl implements MemberService {
+	
+	
+	String getMemberId(String token) {
+		System.out.println("token: " + token);
+		String[] chunks = token.split("\\.");
+		Base64.Decoder decoder = Base64.getUrlDecoder();
+
+		String payloadJson = new String(decoder.decode(chunks[1]));
+
+		Gson gson = new Gson();
+
+		Payload payload = gson.fromJson(payloadJson, Payload.class);
+		String memberid = payload.getSub();
+		System.out.println("memberid : " + memberid);
+		return memberid;
+	}
+	
 
 	private final MemberRepository memberRepository;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -45,7 +67,7 @@ public class MemberServiceImpl implements MemberService {
 		System.out.println(member);
 	}
 
-	//로그인
+	// 로그인
 	@Override
 	public String login(String memberid, String password) {
 		// 회원 가입 여부 확인
@@ -111,64 +133,103 @@ public class MemberServiceImpl implements MemberService {
 		return false;
 	}
 
-	// 회원정보수정
+	//회원정보수정
+	@Override
 	@Transactional
-	@Override
-	public boolean update(MemberUpdateRequest request) throws Exception {
-		// 회원 ID를 기준으로 회원을 조회
-		Members member = memberRepository.findByMemberid(request.getMemberid())
-				.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-		// 수정할 필드들을 업데이트
-		member.setPswd(request.getPswd());
-		member.setAccBank(request.getAccBank());
-		member.setAccno(request.getAccno());
-		member.setHasjob(request.getHasJob());
-		member.sethiredate(request.getHiredate());
-		member.setMarry(request.getMarry());
-		member.setHaschild(request.getHaschild());
-		memberRepository.save(member);
-		return true;
-	}
-	
-	//클라이언트에게 회원정보목록 보내 
-	@Override
-	public List<MemberDTO> getMembers() {
-	    List<Members> members = memberRepository.findAll();
+	public boolean update(HttpServletRequest request, MemberUpdateRequest updaterequest) throws Exception {
+		
+	    // 토큰에서 회원 ID 추출
+		String token = request.getHeader("token");
+		String memberid = getMemberId(token);
 
-	    List<MemberDTO> filteredMembers = new ArrayList<>();
+	    // 회원 ID를 기반으로 회원 정보를 조회합니다.
+	    Members member = memberRepository.findByMemberid(memberid)
+	            .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-	    for (Members member : members) {
-	        MemberDTO filteredMember = new MemberDTO();
-	        filteredMember.setMemberid(member.getMemberid());
-	        filteredMember.setMembername(member.getMembername());
-	        filteredMember.setBday(member.getBday());
-	        filteredMember.setRoles(member.getRoles());
-	        // 필요한 다른 필드들도 추가
-	        
-	        filteredMembers.add(filteredMember);
+	    // 비밀번호를 암호화합니다.
+	    String encryptedPassword = member.getPswd(); // 비밀번호가 제공되지 않으면 기존 비밀번호를 유지합니다.
+
+	    if (updaterequest.getPswd() != null) {
+	        encryptedPassword = passwordEncoder.encode(updaterequest.getPswd());
+	    }
+	    // 필드를 업데이트합니다.
+	    if (updaterequest.getMembername() != null) {
+	        member.setMembername(updaterequest.getMembername());
+	    }
+	    if (updaterequest.getBday() != null) {
+	        member.setBday(updaterequest.getBday());
+	    }
+	    if (updaterequest.getPhone() != null) {
+	        member.setPhone(updaterequest.getPhone());
+	    }
+	    if (updaterequest.getAccBank() != null) {
+	        member.setAccBank(updaterequest.getAccBank());
+	    }
+	    if (updaterequest.getAccno() != null) {
+	        member.setAccno(updaterequest.getAccno());
+	    }
+	    if (updaterequest.getJobname() != null) {
+	        member.setJobname(updaterequest.getJobname());
+	    }
+	    if (updaterequest.getHasjob() != null) {
+	        member.setHasjob(updaterequest.getHasjob());
+	    }
+	    if (updaterequest.getHiredate() != null) {
+	        member.sethiredate(updaterequest.getHiredate()); 
+	    }
+	    if (updaterequest.getMarry() != null) {
+	        member.setMarry(updaterequest.getMarry());
+	    }
+	    if (updaterequest.getHaschild() != null) {
+	        member.setHaschild(updaterequest.getHaschild());
 	    }
 
-	    return filteredMembers;
+	    // 업데이트된 비밀번호를 설정합니다.
+	    member.setPswd(encryptedPassword);
+
+	    // 업데이트된 회원 정보를 저장합니다.
+	    memberRepository.save(member);
+
+	    return true;
 	}
-	
-	//회원아이디 조회
+        
+
+	// 클라이언트에게 회원정보목록 보내
+	@Override
+	public List<MemberDTO> getMembers() {
+		List<Members> members = memberRepository.findAll();
+
+		List<MemberDTO> filteredMembers = new ArrayList<>();
+
+		for (Members member : members) {
+			MemberDTO filteredMember = new MemberDTO();
+			filteredMember.setMemberid(member.getMemberid());
+			filteredMember.setMembername(member.getMembername());
+			filteredMember.setBday(member.getBday());
+			filteredMember.setRoles(member.getRoles());
+			filteredMembers.add(filteredMember);
+		}
+
+		return filteredMembers;
+	}
+
+	// 회원아이디 조회
 	@Override
 	public Optional<Members> getMemberByid(String memberId) {
-	    return memberRepository.findByMemberid(memberId);
+		return memberRepository.findByMemberid(memberId);
 	}
-	
+
 	// 관리자가 사용자 권한 수정
 	@Override
 	public void updateMemberRoles(String memberId, List<String> roles) {
-	    Optional<Members> optionalMember = getMemberByid(memberId);
-	    if (optionalMember.isPresent()) {
-	        Members member = optionalMember.get();
-	        member.setRoles(roles);
-	        memberRepository.save(member); // Save the member directly within the method
-	    } else {
-	        throw new RuntimeException("회원을 찾을 수 없습니다.");
-	    }
+		Optional<Members> optionalMember = getMemberByid(memberId);
+		if (optionalMember.isPresent()) {
+			Members member = optionalMember.get();
+			member.setRoles(roles);
+			memberRepository.save(member); // Save the member directly within the method
+		} else {
+			throw new RuntimeException("회원을 찾을 수 없습니다.");
+		}
 	}
 
-
-	}
+}
