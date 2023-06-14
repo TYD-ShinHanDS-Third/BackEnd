@@ -1,5 +1,6 @@
 package com.shinhan.education.vo;
 
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
