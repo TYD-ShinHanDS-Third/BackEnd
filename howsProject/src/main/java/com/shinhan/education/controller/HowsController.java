@@ -344,11 +344,24 @@ public class HowsController {
 	}
 
 	// 상세 대출 html 상담용
+	//대출 상담 신청 들어옴->memloan생성
+	//채팅룸 생성
 	@GetMapping("/loan/detail/consult")
 	public <T> T detailhtmlforconsult(HttpServletRequest request) {
 		System.out.println("상세 대출상담 요청 들어옴");
 		String bankname = request.getParameter("bankname");
 		String loanname = request.getParameter("loanname");// 변수 이름 확인
+		String token = request.getParameter("token");
+		String memberid = getMemberId(token);
+		Loans loan = loanRepo.findById(loanname).get();
+		Members mem = memRepo.findById(memberid).get();
+		MemberLoans ml = MemberLoans.builder().memberid(mem).loanname(loan).loanstate("상담신청").build(); 
+		ml =memloanRepo.save(ml);
+		ml.getMemloanid();
+		//ChatRoom room = ChatRoom.builder().memloanid(ml.getMemloanid()).build();
+		//room = roomRepo.save(room);
+		//ml.setRoomnumber(room.getroomId());
+		//memloanRepo.save(ml2);
 
 		if (bankname.equals("신한")) {
 			return (T) shinhanRepo.findById(loanname);

@@ -37,11 +37,12 @@ class HowsProjectApplicationTests {
 
 	@Autowired
 	HanaRepository hanaRepo;
-@Autowired
-PanRepository panRepo;
-@Autowired
-DetailPanRepository dpRepo;
-	//@Test
+	@Autowired
+	PanRepository panRepo;
+	@Autowired
+	DetailPanRepository dpRepo;
+
+	@Test
 	void intoloans() {
 		List<Loans> loanList = new ArrayList<>();
 		List<ShinhanHTML> slit = (List<ShinhanHTML>) shinhanRepo.findAll();
@@ -50,30 +51,30 @@ DetailPanRepository dpRepo;
 		List<HanaHTML> hlit = (List<HanaHTML>) hanaRepo.findAll();
 
 		slit.forEach((a) -> {
-		    String internet = a.getInternet() != null ? a.getInternet() : "";
-		    String mobile = a.getMobile() != null ? a.getMobile() : "";
-		    String branch = a.getBranch() != null ? a.getBranch() : "";
-		    String type = (internet + " " + mobile + " " + branch).trim();
+			String internet = a.getInternet() != null ? a.getInternet() : "";
+			String mobile = a.getMobile() != null ? a.getMobile() : "";
+			String branch = a.getBranch() != null ? a.getBranch() : "";
+			String type = (internet + " " + mobile + " " + branch).trim();
 
-		    if (!type.isEmpty()) {
-		        System.out.println(type);
-		        Loans l = new Loans(a.getProductname(), a.getBankname(), type);
-		        loanList.add(l);
-		    }
+			if (!type.isEmpty()) {
+				System.out.println(type);
+				Loans l = new Loans(a.getProductname(), a.getBankname(), type);
+				loanList.add(l);
+			}
 		});
 
 		klist.forEach((a) -> {
-		    String internet = a.getInternet() != null ? a.getInternet() : "";
-		    String smart = a.getSmart() != null ? a.getSmart() : "";
-		    String starbanking = a.getStarbanking() != null ? a.getStarbanking() : "";
-		    String branch = a.getBranch() != null ? a.getBranch() : "";
-		    String type = (internet + " " + smart + " " + starbanking + " " + branch).trim();
+			String internet = a.getInternet() != null ? a.getInternet() : "";
+			String smart = a.getSmart() != null ? a.getSmart() : "";
+			String starbanking = a.getStarbanking() != null ? a.getStarbanking() : "";
+			String branch = a.getBranch() != null ? a.getBranch() : "";
+			String type = (internet + " " + smart + " " + starbanking + " " + branch).trim();
 
-		    if (!type.isEmpty()) {
-		        System.out.println(type);
-		        Loans l = new Loans(a.getProductname(), a.getBankname(), type);
-		        loanList.add(l);
-		    }
+			if (!type.isEmpty()) {
+				System.out.println(type);
+				Loans l = new Loans(a.getProductname(), a.getBankname(), type);
+				loanList.add(l);
+			}
 		});
 		wlit.forEach((a) -> {
 			String type = a.getTypes();
@@ -82,27 +83,27 @@ DetailPanRepository dpRepo;
 			loanList.add(l);
 		});
 		hlit.forEach((a) -> {
-			String type = a.getBranch(); 
-			
+			String type = a.getBranch();
+
 			Loans l = new Loans(a.getProductname(), a.getBankname(), type);
 			loanList.add(l);
 		});
 
-		loanList.forEach((loan)->{
-			
+		loanList.forEach((loan) -> {
+
 			loanRepo.save(loan);
-			
+
 		});
-		
 
 	}
-	//@Test
+
+	// @Test
 	void test1() {
 		String panid = "2015122300013847";
-		
+
 		Pans pan = panRepo.findById(panid).get();
 		System.out.println(pan);
-		DetailPans dp =  dpRepo.findByPan(pan);
+		DetailPans dp = dpRepo.findByPan(pan);
 		System.out.println(dp);
 	}
 

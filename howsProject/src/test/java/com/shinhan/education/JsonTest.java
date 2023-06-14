@@ -56,7 +56,7 @@ public class JsonTest {
 
 	}
 
-	@Test // 전체 공고문에서 page cnt정보를 반환한다.
+	//@Test // 전체 공고문에서 page cnt정보를 반환한다.
 	void getpanCnt() throws IOException, ParseException {
 		System.out.println("start");
 		int totalcnt = 0;

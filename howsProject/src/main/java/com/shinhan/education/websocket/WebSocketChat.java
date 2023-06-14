@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.shinhan.education.jwt.TokenToString;
+
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -20,13 +22,14 @@ public class WebSocketChat {
     
     private static Logger logger = LoggerFactory.getLogger(WebSocketChat.class);
 
-    
+    TokenToString tts = new TokenToString();
     
     //@ServerEndpoint 에서 명시한 URL로 요청이 들어올 경우 해당 메서드가 실행되어 클라이언트의 정보를 매개변수로 전달받습니다.
     //상수인 clients에 해당 session이 존재하지 않으면 clients에 접속된 클라이언트를 추가합니다.
     @OnOpen //클라이언트가 접속할 때마다 실행
     public void onOpen(Session session) {
     	//DB에서 과거 채팅 내역을 clent에게 보내준다.
+    	
         logger.info("open session : {}, clients={}", session.toString(), clients);
         Map<String, List<String>> res = session.getRequestParameterMap();
         logger.info("res={}", res);
@@ -42,11 +45,19 @@ public class WebSocketChat {
     
     //클라이언트와 서버Socket이 연결된 상태에서, 메세지가 전달되면 해당 메서드가 실행되어 상수인 clients에 있는 모든 session에게 메세지를 전달합니다.
     @OnMessage //메세지 수신 시
-    public void onMessage(String message, Session session) throws IOException {
+    public void onMessage(Long roomid, String token, String message, Session session) throws IOException {
     	//들어온 채팅메세지와 사용자 정보를 DB저장한다.
     	//사용자 이름은 토큰으로 온다.
+    	
+    	//DB에 채팅 메세지와 시간을 저장한다.
+    	String memberid = tts.getMemberId(token);
+    	//Chatinfo ci = Chatinfo.builder().memberid(memberid).message(message).roomid(roomid).build();
+    	//chatinfoRepo.save(ci);
+    	
+    	
+    	
         logger.info("receive message : {}", message);
-
+        
         for (Session s : clients) {
             logger.info("send data : {}", message);
             s.getBasicRemote().sendText(message);
