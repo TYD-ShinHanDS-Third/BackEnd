@@ -17,8 +17,19 @@ public class SmsController {
     public SmsController() {
         this.naverSens = new Naver_Sens_V2();
     }
+    //은행원이 승인 or 부접합 눌렀을때 안내 메세지 전송
+    @PostMapping("/tellersend")
+    public String apporveSms(@RequestParam("tel") String tel,
+                             @RequestParam("membername") String membername,
+                             @RequestParam("loanname") String loanname) {
+        Naver_Sens_Approved sensApproved = new Naver_Sens_Approved();
+        sensApproved.send_msg(tel, membername, loanname);
+        
+        // 원하는 처리를 추가하거나 결과를 반환할 수 있습니다.
+        return "SMS sent successfully";
+    }
     
-    // 문자 발송 요청 처리
+    // 회원가입시 본인확인 메세지 전송
     @PostMapping("/send")
     public String sendSms(@RequestParam("tel")String tel) {
         String verificationCode = sendRandomMessage(tel);
