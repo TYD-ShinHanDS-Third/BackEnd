@@ -41,6 +41,7 @@ public class Pans {
 	private String panurl;// 공고상세URL
 
 
+	
 //	@JsonIgnore
 //	@OneToMany(mappedBy = "pans", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 //	private List<PanFavorites> panfavlist;

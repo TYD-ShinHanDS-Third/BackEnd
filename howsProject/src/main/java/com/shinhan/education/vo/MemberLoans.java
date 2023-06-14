@@ -30,20 +30,23 @@ public class MemberLoans {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer memloanid; //대출코드(pk)
 	
-   // @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "loanname", referencedColumnName = "loanname")
-	Loans loanname; //대출상품명(fk)
+	@ManyToOne
+	@JoinColumn(name = "loanname", referencedColumnName = "loanname")
+	private Loans loanname; // 대출상품명(fk)
 
+	
 	private String loanstate;//대출진행상태
 	private String applyurl;//대출신청url
 	private String exlimit;//예상한도
 
 	
    // @JsonIgnore
+	
     @ManyToOne
 	@JoinColumn(name = "memberid", referencedColumnName = "memberid")
     private Members memberid; // 회원아이디
+     
+    private String comments;
     
    //BLOB타입으로 써야 pdf등 이진파일 내용을 저장할 수 있다. 
     private Blob leaseContract; //확정 일자부 임대차(전세)계약서
@@ -56,5 +59,7 @@ public class MemberLoans {
     private Blob employmentProof; //근로자인 경우 건강보험자격득실확인서 or 근로소득원천징수영수증:
     private Blob businessProof; // 자영업자인 경우 사업자등록증명원 or 소득금액증명원
     private Blob interestLimitDocuments; //금리 및 한도우대를 받고자 하는 서류
-
+    
+   
+ 
 }

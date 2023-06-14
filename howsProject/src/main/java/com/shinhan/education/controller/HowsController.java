@@ -592,4 +592,31 @@ public class HowsController {
 		return  "대출승인완료!!";
 	}
 	
+	//--------------------------------------------------------------------------
+	
+	
+	@PutMapping("/updateurl")//상담 후 신청 url을 DB에 저장한다
+	public String updateurl(HttpServletRequest request) {
+		String newurl = request.getParameter("url");
+		String loanid = request.getParameter("loanid");
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
+		ml.setApplyurl(newurl);
+		memloanRepo.save(ml);
+		return "url수정완료";
+	}
+	
+	
+	//은행원이 승인 거부
+	@PutMapping("bank/reject")
+	public String rejectloan(HttpServletRequest request) {
+		
+		String loanid = request.getParameter("loanid");
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
+		ml.setLoanstate("승인거부");
+		memloanRepo.save(ml);
+		return "승인거부완료";
+		
+	}
+	
+	
 }

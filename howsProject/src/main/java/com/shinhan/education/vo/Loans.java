@@ -29,8 +29,9 @@ import lombok.ToString;
 public class Loans {
 
 	@Id
-	private String loanname;// 상품명
+	private String loanname; // 상품명
 	private String bankname;// 은행명
 	private String type;
 
+	
 }
