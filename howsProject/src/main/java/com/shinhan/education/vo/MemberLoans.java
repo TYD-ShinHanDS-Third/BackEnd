@@ -60,6 +60,7 @@ public class MemberLoans {
     private Blob businessProof; // 자영업자인 경우 사업자등록증명원 or 소득금액증명원
     private Blob interestLimitDocuments; //금리 및 한도우대를 받고자 하는 서류
     
+    private Long roomnumber;
    
  
 }

@@ -20,5 +20,6 @@ public interface MemberLoanRepository extends JpaRepository<MemberLoans, Integer
 	        + "where ml.memberid = m.memberid and l.loanname = ml.loanname and ml.loanstate = :stateA")
 	Page<MemberLoans> findByState(@Param("stateA") String stateA, Pageable pageable);
 
+	
 
 }
