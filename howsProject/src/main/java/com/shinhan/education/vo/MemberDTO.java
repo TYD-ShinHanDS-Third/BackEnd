@@ -15,5 +15,4 @@ public class MemberDTO {
     private Date bday;
 	@Enumerated(EnumType.STRING)
 	private Role roles; // 사용자, 관리자, 은행원
-
 }

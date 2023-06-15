@@ -1,4 +1,5 @@
 package com.shinhan.education.controller;
+
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +19,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.shinhan.education.jwt.JwtTokenProvider;
+import com.shinhan.education.mail.RegisterMail;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberDTO;
@@ -31,24 +34,28 @@ import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.Payload;
+import com.shinhan.education.vo.RequestVO;
 
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin
 @RequiredArgsConstructor
-@RequestMapping("/member")
+@RequestMapping("/hows")
 @RestController
 public class MembersController {
-	
-	 @Autowired
-	 private MemberRepository memberRepository;
-	
+
+	@Autowired
+	private MemberRepository memberRepo;
+
 	private final JwtTokenProvider jwtTokenProvider;
-	
+
 	@Autowired
 	private MemberService memberService;
 	
-	//토큰에서 memberid 추출
+	@Autowired
+	private RegisterMail registermail;
+
+	// 토큰에서 memberid 추출
 	String getMemberId(String token) {
 		System.out.println("token: " + token);
 		// String token =
@@ -65,35 +72,34 @@ public class MembersController {
 		System.out.println("memberid : " + memberid);
 		return memberid;
 	}
-	
 
 	// 회원가입
-	@PostMapping("/signup")
+	@PostMapping("/auth/signup")
 	public ResponseEntity<String> signUp(@RequestBody MemberSignUpRequest request) {
-	    try {
-	        
-	        // 회원 가입 요청 정보에 추가 정보가 포함되어 있는지 확인하고 회원 등급 설정
-	        boolean hasAdditionalInfo = request.hasAdditionalInfo();
-	        MemberLevel memberLevel = hasAdditionalInfo ? MemberLevel.GOLDUSER : MemberLevel.SILVERUSER;
+		try {
 
-	        // 회원 가입 처리
-	        memberService.signUp(request, memberLevel);
+			// 회원 가입 요청 정보에 추가 정보가 포함되어 있는지 확인하고 회원 등급 설정
+			boolean hasAdditionalInfo = request.hasAdditionalInfo();
+			MemberLevel memberLevel = hasAdditionalInfo ? MemberLevel.GOLDUSER : MemberLevel.SILVERUSER;
 
-	        return new ResponseEntity<>("success.", HttpStatus.OK);
-	    } catch (Exception e) {
-	        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-	    }
+			// 회원 가입 처리
+			memberService.signUp(request, memberLevel);
+
+			return new ResponseEntity<>("success.", HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
 	}
-    
-    //"Bearer "는 토큰 타입을 나타내는 접두사이다.
-    //클라이언트는 이 토큰을 이후의 요청에 포함시켜 서버에 인증을 요청할 수 있다.
-    //로그인
-    @PostMapping("/login")
+
+	// "Bearer "는 토큰 타입을 나타내는 접두사이다.
+	// 클라이언트는 이 토큰을 이후의 요청에 포함시켜 서버에 인증을 요청할 수 있다.
+	// 로그인
+	@PostMapping("/auth/login")
 	public ResponseEntity<String> login(@RequestBody MemberLoginRequest member) {
-    	
-    	System.out.println(member.getMemberid());
-    	System.out.println(member.getPswd());
-    	
+
+		System.out.println(member.getMemberid());
+		System.out.println(member.getPswd());
+
 		try {
 			// 입력된 아이디와 비밀번호로 사용자 인증을 진행한다.
 			boolean isAuthenticated = memberService.authenticate(member.getMemberid(), member.getPswd());
@@ -105,7 +111,8 @@ public class MembersController {
 			}
 
 			// 인증에 성공한 경우, 토큰을 생성한다.
-			String token = jwtTokenProvider.createToken(member.getMemberid(), memberService.getRoles(member.getMemberid()));
+			String token = jwtTokenProvider.createToken(member.getMemberid(),
+					memberService.getRoles(member.getMemberid()));
 
 			// 토큰을 클라이언트에게 전달하기 위해 HTTP 응답 헤더에 포함시킵니다.
 			HttpHeaders headers = new HttpHeaders();
@@ -119,64 +126,64 @@ public class MembersController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
 		}
 	}
-    
-    //회원탈퇴(토큰으로 완료)
-    @DeleteMapping("/delete")
-    public ResponseEntity<String> delete(HttpServletRequest request) {
-    	String token = request.getHeader("token");
-    	if (token == null) {
-    	        // token이 없을 경우에 대한 처리
-    	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 없습니다.");
-    	    }
-    	String memberid = getMemberId(token);
-        try {
-            boolean isDeleted = memberService.delete(memberid);
 
-            if (isDeleted) {
-                return ResponseEntity.ok("success");
-            } else {
-            	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("없는 회원 아이디입니다."); // 클라이언트에게 "없는 회원 아이디입니다."라는 메시지와 함께 400 상태 코드를 반환할 수 있다.
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 탈퇴 중 오류가 발생했습니다.");
-        }
-    }
-    
-    
- // 회원정보 수정 //토큰
-    @PutMapping("/update")
-    public ResponseEntity<String> updateMember(HttpServletRequest request, @RequestBody MemberUpdateRequest updaterequest) {
-        try {
-            boolean isUpdated = memberService.update(request, updaterequest);
-            if (isUpdated) {
-                return ResponseEntity.ok("success");
-            } else {
-                return ResponseEntity.badRequest().body("회원 정보 업데이트에 실패했습니다.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 수정 중 오류가 발생했습니다.");
-        }
-    }
-    
-    
-    //아이디 중복체크
-    @GetMapping("/checkDuplicateId")
-    public ResponseEntity<String> checkDuplicateId(@RequestParam("memberid") String memberid) {
-    	System.out.println("ff");
-        // 데이터베이스에서 아이디 조회
-        Optional<Members> existingMember = memberRepository.findByMemberid(memberid);
+	// 회원탈퇴(토큰으로 완료)
+	@DeleteMapping("/my/withdraw")
+	public ResponseEntity<String> delete(HttpServletRequest request) {
+		String token = request.getHeader("token");
+		if (token == null) {
+			// token이 없을 경우에 대한 처리
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 없습니다.");
+		}
+		String memberid = getMemberId(token);
+		try {
+			boolean isDeleted = memberService.delete(memberid);
 
-        if (existingMember.isPresent()) {
-            // 중복된 아이디인 경우
-            return ResponseEntity.ok("중복된아이디입니다.");
-        } else {
-            // 중복되지 않은 아이디인 경우
-            return ResponseEntity.ok("사용가능한아이디입니다.");
-        }
-    }
-    
-    
-    //토큰에서 회원id 추출 후 해당 회원id값으로 회원정보 제공(Mypage)
+			if (isDeleted) {
+				return ResponseEntity.ok("success");
+			} else {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("없는 회원 아이디입니다."); // 클라이언트에게 "없는 회원 아이디입니다."라는
+																							// 메시지와 함께 400 상태 코드를 반환할 수
+																							// 있다.
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 탈퇴 중 오류가 발생했습니다.");
+		}
+	}
+
+	// 회원정보 수정 //토큰
+	@PutMapping("/my/myedit")
+	public ResponseEntity<String> updateMember(HttpServletRequest request,
+			@RequestBody MemberUpdateRequest updaterequest) {
+		try {
+			boolean isUpdated = memberService.update(request, updaterequest);
+			if (isUpdated) {
+				return ResponseEntity.ok("success");
+			} else {
+				return ResponseEntity.badRequest().body("회원 정보 업데이트에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 수정 중 오류가 발생했습니다.");
+		}
+	}
+
+	// 아이디 중복체크
+	@GetMapping("/auth/checkDuplicateId")
+	public ResponseEntity<String> checkDuplicateId(@RequestParam("memberid") String memberid) {
+		System.out.println("ff");
+		// 데이터베이스에서 아이디 조회
+		Optional<Members> existingMember = memberRepo.findByMemberid(memberid);
+
+		if (existingMember.isPresent()) {
+			// 중복된 아이디인 경우
+			return ResponseEntity.ok("중복된아이디입니다.");
+		} else {
+			// 중복되지 않은 아이디인 경우
+			return ResponseEntity.ok("사용가능한아이디입니다.");
+		}
+	}
+
+	// 토큰에서 회원id 추출 후 해당 회원id값으로 회원정보 제공(Mypage)
 	@GetMapping("/mypage")
 	public ResponseEntity<?> getMemberForEdit(HttpServletRequest request) {
 		String token = request.getHeader("token");
@@ -186,7 +193,7 @@ public class MembersController {
 		}
 		String memberid = getMemberId(token);
 		try {
-			Optional<Members> memberOptional = memberRepository.findByMemberid(memberid);
+			Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
 			if (memberOptional.isPresent()) {
 				Members member = memberOptional.get();
 				return ResponseEntity.ok(member); // 회원 정보를 반환합니다.
@@ -197,40 +204,47 @@ public class MembersController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 조회 중 오류가 발생했습니다.");
 		}
 	}
-    
 
-    //클라이언트에게 회원가입된 회원정보리스트 전달(관리자 페이지)
-    @GetMapping("/users")
-    public List<MemberDTO> getMemberList() {
-        List<MemberDTO> memberDTOList = memberService.getMembers();
-        return memberDTOList;
-    }
-    
-    //관리자가 사용자 Roles 수정
-    @PutMapping("/members/{memberId}/roles")
-    public ResponseEntity<String> updateMemberRoles(@PathVariable String memberId, @RequestBody List<String> roles) {
-        try {
-            // 회원 조회
-            Optional<Members> memberOptional = memberService.getMemberByid(memberId);
-            
-            if (!memberOptional.isPresent()) {
-                // 회원이 존재하지 않을 경우 404 응답 반환
-                return ResponseEntity.notFound().build();
-            }
+	// 클라이언트에게 회원가입된 회원정보리스트 전달(관리자 페이지)
+	@GetMapping("/admin/user")
+	public RequestVO<List<MemberDTO>> getMemberList(@RequestParam int page, @RequestParam int size) {
+		RequestVO<List<MemberDTO>> memberDTOList = memberService.getMembers(page, size);
+		return memberDTOList;
+	}
 
-            Members member = memberOptional.get();
-            
-            // 회원의 roles 설정
-            member.setRoles(roles);
-            
-            // 회원 업데이트
-            memberService.updateMemberRoles(memberId, roles);
-            
-            // 업데이트 완료 메시지 반환
-            return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
-        } catch (Exception e) {
-            // 서버 오류 발생 시 500 응답 반환
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
-        }
+	// 관리자가 사용자 Roles 수정
+	@PutMapping("/admin/{memberid}/user")
+	public ResponseEntity<String> updateMemberRoles(@PathVariable String memberid, @RequestBody List<String> roles) {
+		try {
+			// 회원 조회
+			Optional<Members> memberOptional = memberService.getMemberByid(memberid);
+
+			if (!memberOptional.isPresent()) {
+				// 회원이 존재하지 않을 경우 404 응답 반환
+				return ResponseEntity.notFound().build();
+			}
+
+			Members member = memberOptional.get();
+
+			// 회원의 roles 설정
+			member.setRoles(roles);
+
+			// 회원 업데이트
+			memberService.updateMemberRoles(memberid, roles);
+
+			// 업데이트 완료 메시지 반환
+			return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
+		} catch (Exception e) {
+			// 서버 오류 발생 시 500 응답 반환
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
+		}
+	}
+
+	// 이메일 인증
+	@PostMapping("login/mailconfirm")
+    String mailConfirm(@RequestParam("email") String email) throws Exception {
+       String code = registermail.sendSimpleMessage(email);
+       System.out.println("인증코드 : " + code);
+       return code;
     }
 }

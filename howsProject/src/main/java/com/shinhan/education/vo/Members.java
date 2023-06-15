@@ -1,11 +1,8 @@
 package com.shinhan.education.vo;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +10,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.AllArgsConstructor;
@@ -51,6 +51,11 @@ public class Members {
 	private Date hiredate; // 입사일
 	private Integer marry; // 결혼유무
 	private Integer haschild; // 자녀 수
+	private String email; //이메일(관리자,은행원)
+	 @CreationTimestamp
+	 @Temporal(TemporalType.TIMESTAMP)
+	 @Column(name = "join_date")
+	 private Date joindate;
 
 	// 입력된 비밀번호와 저장된 비밀번호를 비교하여 유효성을 확인하는 메서드
 	public boolean isPswdValid(PasswordEncoder passwordEncoder, String password) {

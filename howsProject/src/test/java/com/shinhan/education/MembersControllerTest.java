@@ -40,30 +40,31 @@ public class MembersControllerTest {
 	
 	
 	
-//	@Test
-//	public void testSaveMember() {
-//	    MemberSignUpRequest requestDto = MemberSignUpRequest.builder()
-//	            .memberid("ckdrua122")
-//	            .membername("김테스트")
-//	            .pswd("1234")
-//	            .bday(Date.valueOf(LocalDate.parse("1497-04-25")))
-//	            .phone("010-4312-1112")
-//	            .roles(Role.USER)
-//	            .accBank("국민은행")
-//	            .accno("45645645646")
-//	            .hasjob(1)
-//	            .hiredate(Date.valueOf(LocalDate.parse("1542-04-25")))
-//	            .marry(1)
-//	            .haschild(2)
-//	            .build();
-//
-//	    try {
-//			memberservice.signUp(requestDto, requestDto.getMemberLevel());
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
+	//@Test
+	public void testSaveMember() {
+	    MemberSignUpRequest requestDto = MemberSignUpRequest.builder()
+	            .memberid("ckdrua235454")
+	            .membername("김테cnasd")
+	            .pswd("1234")
+	            .bday(Date.valueOf(LocalDate.parse("1497-04-25")))
+	            .phone("010-4312-1112")
+	            .roles(Role.USER)
+	            .accBank("국민은행")
+	            .accno("45645645646")
+	            .hasjob(1)
+	            .hiredate(Date.valueOf(LocalDate.parse("1542-04-25")))
+	            .marry(1)
+	            .haschild(2)
+	            .email("ckdrua@naver.com")
+	            .build();
+
+	    try {
+			memberservice.signUp(requestDto, requestDto.getMemberLevel());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	//@Test
 	public void test5() {

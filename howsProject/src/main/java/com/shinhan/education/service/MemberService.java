@@ -10,6 +10,7 @@ import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
+import com.shinhan.education.vo.RequestVO;
 
 public interface MemberService {
 	
@@ -34,11 +35,11 @@ public interface MemberService {
     // 회원 정보 수정
     boolean update(HttpServletRequest request, MemberUpdateRequest updaterequest) throws Exception;
     
-    //회원가입된 회원정보리스트 전달
-    public List<MemberDTO> getMembers();
+    //회원가입된 회원정보리스트 전달(페이징)
+    public RequestVO<List<MemberDTO>> getMembers(int page, int pageSize);
 
     //관리작 사용자 Roles 수정
-    public void updateMemberRoles(String memberId, List<String> roles);
+    public void updateMemberRoles(String memberid, List<String> roles);
 	
 	//회원조회
 	public Optional<Members> getMemberByid(String memberId);

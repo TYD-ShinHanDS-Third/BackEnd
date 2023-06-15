@@ -2,6 +2,12 @@ package com.shinhan.education.vo;
 
 import java.sql.Date;
 
+import javax.persistence.Column;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,16 +32,21 @@ public class MemberSignUpRequest {
 	private Integer haschild; // 자녀 수
 	private String jobname; // 직장명
 	private MemberLevel memberLevel; // 회원등급
+	private String email; //이메일
+	 @CreationTimestamp
+	 @Temporal(TemporalType.TIMESTAMP)
+	 @Column(name = "join_date")
+	 private Date joindate;
 
 	public Members toEntity() {
 		return Members.builder().memberid(memberid).membername(membername).pswd(pswd).bday(bday).phone(phone)
 				.roles(roles).accBank(accBank).accno(accno).hasjob(hasjob).hiredate(hiredate).marry(marry)
-				.haschild(haschild).jobname(jobname).build();
+				.haschild(haschild).jobname(jobname).email(email).joindate(joindate).build();
 	}
 
 	public MemberSignUpRequest(String memberid, String membername, String pswd, String checkedpswd, Date bday,
 			String phone, Role roles, String accBank, String accno, Integer hasjob, Date hiredate, Integer marry,
-			Integer haschild, String jobname, MemberLevel memberLevel) {
+			Integer haschild, String jobname, MemberLevel memberLevel, String email, Date joindate) {
 		this.memberid = memberid;
 		this.membername = membername;
 		this.pswd = pswd;
@@ -51,6 +62,8 @@ public class MemberSignUpRequest {
 		this.haschild = haschild;
 		this.jobname = jobname;
 		this.memberLevel = memberLevel;
+		this.email = email;
+		this.joindate=joindate;
 	}
 
 	// 추가 정보를 반환하는 메서드
