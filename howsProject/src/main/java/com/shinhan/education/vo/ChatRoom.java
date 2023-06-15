@@ -13,13 +13,17 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
 @Table(name = "CHATROOM")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChatRoom {
 
 	@Id
@@ -29,7 +33,7 @@ public class ChatRoom {
 	private Integer memloanid; // 대출코드
 	// private String adminId; // 관리자 아이디
 
-	@OneToMany(mappedBy = "chatroom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "chatroom", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JsonIgnore
 	private List<ChatInfo> chatInfos;
 }
