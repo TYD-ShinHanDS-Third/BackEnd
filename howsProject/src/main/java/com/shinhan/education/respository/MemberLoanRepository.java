@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.shinhan.education.vo.Loans;
-import com.shinhan.education.vo.MemberLoans;
-import com.shinhan.education.vo.Members;
+import com.shinhan.education.entity.Loans;
+import com.shinhan.education.entity.MemberLoans;
+import com.shinhan.education.entity.Members;
 
 public interface MemberLoanRepository extends JpaRepository<MemberLoans, Integer> {
 

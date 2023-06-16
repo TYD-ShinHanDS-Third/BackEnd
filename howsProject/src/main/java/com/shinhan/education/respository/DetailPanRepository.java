@@ -2,8 +2,8 @@ package com.shinhan.education.respository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.shinhan.education.vo.DetailPans;
-import com.shinhan.education.vo.Pans;
+import com.shinhan.education.entity.DetailPans;
+import com.shinhan.education.entity.Pans;
 
 public interface DetailPanRepository extends JpaRepository<DetailPans, Long>{
 	

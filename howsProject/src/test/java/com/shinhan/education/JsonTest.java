@@ -22,12 +22,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinhan.education.entity.DetailPans;
+import com.shinhan.education.entity.FileInfos;
+import com.shinhan.education.entity.Pans;
 import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.FileInfoRepository;
 import com.shinhan.education.respository.PanRepository;
-import com.shinhan.education.vo.DetailPans;
-import com.shinhan.education.vo.FileInfos;
-import com.shinhan.education.vo.Pans;
 
 @SpringBootTest
 public class JsonTest {

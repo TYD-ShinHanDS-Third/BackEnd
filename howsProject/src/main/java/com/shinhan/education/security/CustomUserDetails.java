@@ -4,7 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.shinhan.education.vo.Members;
+import com.shinhan.education.entity.Members;
 import com.shinhan.education.vo.Role;
 
 import java.util.Arrays;

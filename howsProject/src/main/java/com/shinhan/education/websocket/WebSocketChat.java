@@ -23,11 +23,11 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinhan.education.entity.ChatInfo;
+import com.shinhan.education.entity.ChatRoom;
 import com.shinhan.education.jwt.TokenToString;
 import com.shinhan.education.respository.ChatInfoRepository;
 import com.shinhan.education.respository.ChatRoomRepository;
-import com.shinhan.education.vo.ChatInfo;
-import com.shinhan.education.vo.ChatRoom;
 
 @Service //// bean 등록
 @ServerEndpoint(value = "/socket/chatt/{room}",configurator = ServerEndpointConfigurator.class) //// 해당 URL로 Socket연결 (Singleton pattern)

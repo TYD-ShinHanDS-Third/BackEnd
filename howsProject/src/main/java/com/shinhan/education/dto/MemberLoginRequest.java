@@ -1,4 +1,4 @@
-package com.shinhan.education.vo;
+package com.shinhan.education.dto;
 
 public class MemberLoginRequest {
     private String memberid;

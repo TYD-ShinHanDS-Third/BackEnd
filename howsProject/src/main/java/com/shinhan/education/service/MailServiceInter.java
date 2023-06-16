@@ -1,4 +1,4 @@
-package com.shinhan.education.mail;
+package com.shinhan.education.service;
 
 import java.io.UnsupportedEncodingException;
 

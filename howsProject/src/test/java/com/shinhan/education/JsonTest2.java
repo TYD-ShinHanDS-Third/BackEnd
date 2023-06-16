@@ -16,8 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shinhan.education.entity.Houses;
 import com.shinhan.education.respository.HouseRepository;
-import com.shinhan.education.vo.Houses;
 
 @SpringBootTest
 public class JsonTest2 {

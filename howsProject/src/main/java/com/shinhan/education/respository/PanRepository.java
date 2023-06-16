@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.shinhan.education.vo.Pans;
+import com.shinhan.education.entity.Pans;
 
 public interface PanRepository extends JpaRepository<Pans, String> {
 	Page<Pans> findAll(Pageable pageable);

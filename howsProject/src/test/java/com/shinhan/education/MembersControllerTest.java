@@ -13,11 +13,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.shinhan.education.dto.MemberSignUpRequest;
+import com.shinhan.education.entity.Members;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberLevel;
-import com.shinhan.education.vo.MemberSignUpRequest;
-import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.Role;
 
 @SpringBootTest

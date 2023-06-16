@@ -1,4 +1,4 @@
-package com.shinhan.education.vo;
+package com.shinhan.education.dto;
 
 import java.sql.Date;
 
@@ -7,6 +7,10 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
+
+import com.shinhan.education.entity.Members;
+import com.shinhan.education.vo.MemberLevel;
+import com.shinhan.education.vo.Role;
 
 import lombok.Builder;
 import lombok.Data;

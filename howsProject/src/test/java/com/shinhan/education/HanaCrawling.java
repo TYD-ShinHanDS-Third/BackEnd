@@ -16,8 +16,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.shinhan.education.entity.HanaHTML;
 import com.shinhan.education.respository.HanaRepository;
-import com.shinhan.education.vo.HanaHTML;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 

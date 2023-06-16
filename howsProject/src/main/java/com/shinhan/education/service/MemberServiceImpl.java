@@ -15,13 +15,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.Gson;
+import com.shinhan.education.dto.MemberDTO;
+import com.shinhan.education.dto.MemberSignUpRequest;
+import com.shinhan.education.dto.MemberUpdateRequest;
+import com.shinhan.education.entity.Members;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.respository.MemberRepository;
-import com.shinhan.education.vo.MemberDTO;
 import com.shinhan.education.vo.MemberLevel;
-import com.shinhan.education.vo.MemberSignUpRequest;
-import com.shinhan.education.vo.MemberUpdateRequest;
-import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
 

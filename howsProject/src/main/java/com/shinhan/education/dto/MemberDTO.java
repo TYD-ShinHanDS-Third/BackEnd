@@ -1,9 +1,11 @@
-package com.shinhan.education.vo;
+package com.shinhan.education.dto;
 
 import java.util.Date;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+
+import com.shinhan.education.vo.Role;
 
 import lombok.Data;
 

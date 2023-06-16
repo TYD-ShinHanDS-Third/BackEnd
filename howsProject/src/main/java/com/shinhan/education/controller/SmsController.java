@@ -1,4 +1,4 @@
-package com.shinhan.education.naversms;
+package com.shinhan.education.controller;
 
 import java.util.Random;
 
@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.shinhan.education.naversms.Naver_Sens_Approved;
+import com.shinhan.education.naversms.Naver_Sens_V2;
 
 @RestController
 @RequestMapping("/hows")

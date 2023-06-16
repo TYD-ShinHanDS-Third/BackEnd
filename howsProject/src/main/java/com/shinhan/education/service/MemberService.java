@@ -5,11 +5,11 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.shinhan.education.vo.MemberDTO;
+import com.shinhan.education.dto.MemberDTO;
+import com.shinhan.education.dto.MemberSignUpRequest;
+import com.shinhan.education.dto.MemberUpdateRequest;
+import com.shinhan.education.entity.Members;
 import com.shinhan.education.vo.MemberLevel;
-import com.shinhan.education.vo.MemberSignUpRequest;
-import com.shinhan.education.vo.MemberUpdateRequest;
-import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.RequestVO;
 
 public interface MemberService {

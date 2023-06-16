@@ -12,8 +12,8 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.shinhan.education.entity.ShinhanHTML;
 import com.shinhan.education.respository.ShinhanRepository;
-import com.shinhan.education.vo.ShinhanHTML;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 

@@ -4,9 +4,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import com.shinhan.education.entity.Members;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.security.CustomUserDetails;
-import com.shinhan.education.vo.Members;
 
 import lombok.RequiredArgsConstructor;
 

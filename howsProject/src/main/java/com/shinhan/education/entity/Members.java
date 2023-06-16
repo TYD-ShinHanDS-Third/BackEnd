@@ -1,4 +1,4 @@
-package com.shinhan.education.vo;
+package com.shinhan.education.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +16,9 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.shinhan.education.vo.MemberLevel;
+import com.shinhan.education.vo.Role;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

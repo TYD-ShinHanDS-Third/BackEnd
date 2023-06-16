@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
-import com.shinhan.education.vo.Loans;
+import com.shinhan.education.entity.Loans;
 
 public interface LoansRepository extends CrudRepository<Loans, String>{
 

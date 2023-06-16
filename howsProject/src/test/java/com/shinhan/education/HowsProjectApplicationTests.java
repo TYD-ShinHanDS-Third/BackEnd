@@ -7,6 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.shinhan.education.entity.DetailPans;
+import com.shinhan.education.entity.HanaHTML;
+import com.shinhan.education.entity.KookminHTML;
+import com.shinhan.education.entity.Loans;
+import com.shinhan.education.entity.Pans;
+import com.shinhan.education.entity.ShinhanHTML;
+import com.shinhan.education.entity.WooriHTML;
 import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.HanaRepository;
 import com.shinhan.education.respository.KookminRepository;
@@ -14,13 +21,6 @@ import com.shinhan.education.respository.LoansRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.respository.ShinhanRepository;
 import com.shinhan.education.respository.WooriRepository;
-import com.shinhan.education.vo.DetailPans;
-import com.shinhan.education.vo.HanaHTML;
-import com.shinhan.education.vo.KookminHTML;
-import com.shinhan.education.vo.Loans;
-import com.shinhan.education.vo.Pans;
-import com.shinhan.education.vo.ShinhanHTML;
-import com.shinhan.education.vo.WooriHTML;
 
 @SpringBootTest
 class HowsProjectApplicationTests {

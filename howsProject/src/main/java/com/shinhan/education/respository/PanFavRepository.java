@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.shinhan.education.vo.PanFavorites;
-import com.shinhan.education.vo.PanFavoritesId;
+import com.shinhan.education.entity.PanFavorites;
+import com.shinhan.education.entity.PanFavoritesId;
 
 public interface PanFavRepository extends JpaRepository<PanFavorites, PanFavoritesId> {
 	Optional<PanFavorites> findById(PanFavoritesId id);

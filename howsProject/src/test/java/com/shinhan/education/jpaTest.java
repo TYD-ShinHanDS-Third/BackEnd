@@ -11,13 +11,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import com.shinhan.education.entity.DetailPans;
+import com.shinhan.education.entity.PanFavorites;
+import com.shinhan.education.entity.PanFavoritesId;
+import com.shinhan.education.entity.Pans;
 import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.PanFavRepository;
 import com.shinhan.education.respository.PanRepository;
-import com.shinhan.education.vo.DetailPans;
-import com.shinhan.education.vo.PanFavorites;
-import com.shinhan.education.vo.PanFavoritesId;
-import com.shinhan.education.vo.Pans;
 
 @SpringBootTest
 public class jpaTest {

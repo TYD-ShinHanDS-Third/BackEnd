@@ -13,6 +13,8 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.shinhan.education.service.MailServiceInter;
+
 @Service
 public class RegisterMail implements MailServiceInter {
 

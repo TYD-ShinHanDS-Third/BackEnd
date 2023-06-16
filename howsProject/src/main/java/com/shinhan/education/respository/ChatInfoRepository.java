@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.shinhan.education.vo.ChatInfo;
-import com.shinhan.education.vo.ChatRoom;
+import com.shinhan.education.entity.ChatInfo;
+import com.shinhan.education.entity.ChatRoom;
 
 public interface ChatInfoRepository extends CrudRepository<ChatInfo, Long>{
 	

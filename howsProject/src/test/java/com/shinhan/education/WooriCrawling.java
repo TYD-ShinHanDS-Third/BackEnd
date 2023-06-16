@@ -13,8 +13,8 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.shinhan.education.entity.WooriHTML;
 import com.shinhan.education.respository.WooriRepository;
-import com.shinhan.education.vo.WooriHTML;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 

@@ -1,4 +1,4 @@
-package com.shinhan.education.vo;
+package com.shinhan.education.entity;
 
 import java.sql.Timestamp;
 
