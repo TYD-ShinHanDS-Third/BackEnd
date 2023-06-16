@@ -1,5 +1,6 @@
 package com.shinhan.education.service;
 
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -220,6 +221,8 @@ public class MemberServiceImpl implements MemberService {
 	        filteredMember.setMembername(member.getMembername());
 	        filteredMember.setBday(member.getBday());
 	        filteredMember.setRoles(member.getRoles());
+	        filteredMember.setEmail(member.getEmail());
+//	        filteredMember.setEmploydocument(employdocument);
 	        filteredMembers.add(filteredMember);
 	    }
 
@@ -232,8 +235,8 @@ public class MemberServiceImpl implements MemberService {
 
 	// 회원아이디 조회
 	@Override
-	public Optional<Members> getMemberByid(String memberId) {
-		return memberRepo.findByMemberid(memberId);
+	public Optional<Members> getMemberByid(String memberid) {
+		return memberRepo.findByMemberid(memberid);
 	}
 
 	// 관리자가 사용자 권한 수정

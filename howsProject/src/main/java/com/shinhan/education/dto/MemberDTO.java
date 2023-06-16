@@ -1,5 +1,6 @@
 package com.shinhan.education.dto;
 
+import java.sql.Blob;
 import java.util.Date;
 
 import javax.persistence.EnumType;
@@ -15,6 +16,8 @@ public class MemberDTO {
     private String memberid;
     private String membername;
     private Date bday;
+    private Blob employdocument;
+    private String email;
 	@Enumerated(EnumType.STRING)
 	private Role roles; // 사용자, 관리자, 은행원
 }

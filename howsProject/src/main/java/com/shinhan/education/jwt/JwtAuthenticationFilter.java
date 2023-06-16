@@ -33,6 +33,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Authentication authentication = jwtAuthenticationProvider.getAuthentication(token);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else {
+            // 토큰이 유효하지 않거나 없는 경우 예외 처리를 수행합니다.
+            // 여기에서는 권한이 없어 접속이 불가하다는 메시지를 클라이언트에게 보내도록 합니다.
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+            return;
         }
 
         filterChain.doFilter(request, response);
