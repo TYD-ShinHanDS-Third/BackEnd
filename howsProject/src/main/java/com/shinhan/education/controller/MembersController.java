@@ -241,7 +241,7 @@ public class MembersController {
 	}
 
 	// 이메일 인증
-	@PostMapping("login/mailconfirm")
+	@PostMapping("/email")
     String mailConfirm(@RequestParam("email") String email) throws Exception {
        String code = registermail.sendSimpleMessage(email);
        System.out.println("인증코드 : " + code);

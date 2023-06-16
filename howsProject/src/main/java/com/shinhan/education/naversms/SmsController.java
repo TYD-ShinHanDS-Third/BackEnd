@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/hows")
 public class SmsController {
     private Naver_Sens_V2 naverSens;
 
@@ -19,7 +19,7 @@ public class SmsController {
     }
     
     //은행원이 승인 or 부접합 눌렀을때 안내 메세지 전송
-    @PostMapping("/tellersend")
+    @PostMapping("/phone")
     public String apporveSms(@RequestParam("tel") String tel,
                              @RequestParam("membername") String membername,
                              @RequestParam("loanname") String loanname) {
