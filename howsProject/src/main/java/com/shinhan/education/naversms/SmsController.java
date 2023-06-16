@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/hows")
 public class SmsController {
     private Naver_Sens_V2 naverSens;
 
@@ -18,7 +18,18 @@ public class SmsController {
         this.naverSens = new Naver_Sens_V2();
     }
     
-    // 문자 발송 요청 처리
+    //은행원이 승인 or 부접합 눌렀을때 안내 메세지 전송
+    @PostMapping("/phone")
+    public String apporveSms(@RequestParam("tel") String tel,
+                             @RequestParam("membername") String membername,
+                             @RequestParam("loanname") String loanname) {
+        Naver_Sens_Approved sensApproved = new Naver_Sens_Approved();
+        sensApproved.send_msg(tel, membername, loanname);
+        
+        return "success";
+    }
+    
+    // 회원가입시 본인확인 메세지 전송
     @PostMapping("/send")
     public String sendSms(@RequestParam("tel")String tel) {
         String verificationCode = sendRandomMessage(tel);
