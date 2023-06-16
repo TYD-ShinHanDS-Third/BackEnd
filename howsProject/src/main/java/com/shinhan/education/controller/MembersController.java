@@ -1,9 +1,13 @@
 package com.shinhan.education.controller;
 
 import java.util.ArrayList;
+
+import java.text.SimpleDateFormat;
+
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,13 +24,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.mail.RegisterMail;
 import com.shinhan.education.respository.MemberRepository;
+import com.shinhan.education.respository.NiceRepository;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.AdminUserInfoShowDTO;
 import com.shinhan.education.vo.MemberDTO;
@@ -35,6 +39,7 @@ import com.shinhan.education.vo.MemberLoginRequest;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
+import com.shinhan.education.vo.Nice;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
 import com.shinhan.education.vo.Role;
@@ -54,9 +59,12 @@ public class MembersController {
 
 	@Autowired
 	private MemberService memberService;
-	
+
 	@Autowired
 	private RegisterMail registermail;
+
+	@Autowired
+	private NiceRepository niceRepo;
 
 	// 토큰에서 memberid 추출
 	String getMemberId(String token) {
@@ -87,6 +95,24 @@ public class MembersController {
 
 			// 회원 가입 처리
 			memberService.signUp(request, memberLevel);
+
+			// 주민등록번호 자동생성해서 nice테이블에 저장. 신용등급은 기본 800
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
+			String juminfront = sdf.format(request.getBday());
+			Random random = new Random();
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < 7; i++) {
+				int digit;
+				if (i == 0)
+					digit = random.nextInt(4) + 1;
+				else
+					digit = random.nextInt(10);
+				sb.append(digit);
+			}
+			String juminback = sb.toString();
+			String jumin = juminfront + juminback;
+			Nice nice = Nice.builder().jumin(jumin).name(request.getMembername()).score(800).build();
+			niceRepo.save(nice);
 
 			return new ResponseEntity<>("success.", HttpStatus.OK);
 		} catch (Exception e) {
@@ -218,56 +244,55 @@ public class MembersController {
 
 	// 관리자가 사용자 Roles 수정
 
-
 	@PutMapping("/admin/user")
 	public ResponseEntity<String> updateMemberRoles(@RequestParam String memberid, @RequestParam List<String> roles) {
-	    try {
-	        // 회원 업데이트
-	        memberService.updateMemberRoles(memberid, roles);
+		try {
+			// 회원 업데이트
+			memberService.updateMemberRoles(memberid, roles);
 
-	        // 업데이트 완료 메시지 반환
-	        return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
-	    } catch (Exception e) {
-	        // 서버 오류 발생 시 500 응답 반환
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
-	    }
+			// 업데이트 완료 메시지 반환
+			return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
+		} catch (Exception e) {
+			// 서버 오류 발생 시 500 응답 반환
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
+		}
 	}
 
 	// 이메일 인증
 	@PostMapping("/email")
-    String mailConfirm(@RequestParam("email") String email) throws Exception {
-       String code = registermail.sendSimpleMessage(email);
-       System.out.println("인증코드 : " + code);
-       return code;
-    }
-	
-	 //상담신청 후 해당 userid값으로 user의추가정보 및 선택한상품명을 클라이언트에게 제공
+	String mailConfirm(@RequestParam("email") String email) throws Exception {
+		String code = registermail.sendSimpleMessage(email);
+		System.out.println("인증코드 : " + code);
+		return code;
+	}
+
+	// 상담신청 후 해당 userid값으로 user의추가정보 및 선택한상품명을 클라이언트에게 제공
 	@GetMapping("/admin/userinfoshow")
 	public ResponseEntity<?> getUserInfoShow(HttpServletRequest request) {
-	    String token = request.getHeader("token");
-	    if (token == null) {
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 유효하지 않습니다.");
-	    }
-	    String memberid = getMemberId(token);
-	    try {
-	        // memberid를 기반으로 DB에서 추가 정보 조회
-	        Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
-	        if (memberOptional.isPresent()) {
-	            Members member = memberOptional.get();
-	            	            // 필요한 정보를 AdminUserInfoShowDTO에 설정
-	            AdminUserInfoShowDTO userInfoShowDTO = new AdminUserInfoShowDTO();
-	            userInfoShowDTO.setHasjob(member.getHasjob());
-	            userInfoShowDTO.setJobname(member.getJobname());
-	            userInfoShowDTO.setHiredate(member.getHiredate());
-	            userInfoShowDTO.setMarry(member.getMarry());
-	            userInfoShowDTO.setHaschild(member.getHaschild());
-	            return ResponseEntity.ok(userInfoShowDTO);
-	        } else {
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("회원이 존재하지 않습니다.");
-	        }
-	    } catch (Exception e) {
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("추가 정보 조회 중 오류가 발생했습니다.");
-	    }
+		String token = request.getHeader("token");
+		if (token == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 유효하지 않습니다.");
+		}
+		String memberid = getMemberId(token);
+		try {
+			// memberid를 기반으로 DB에서 추가 정보 조회
+			Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
+			if (memberOptional.isPresent()) {
+				Members member = memberOptional.get();
+				// 필요한 정보를 AdminUserInfoShowDTO에 설정
+				AdminUserInfoShowDTO userInfoShowDTO = new AdminUserInfoShowDTO();
+				userInfoShowDTO.setHasjob(member.getHasjob());
+				userInfoShowDTO.setJobname(member.getJobname());
+				userInfoShowDTO.setHiredate(member.getHiredate());
+				userInfoShowDTO.setMarry(member.getMarry());
+				userInfoShowDTO.setHaschild(member.getHaschild());
+				return ResponseEntity.ok(userInfoShowDTO);
+			} else {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("회원이 존재하지 않습니다.");
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("추가 정보 조회 중 오류가 발생했습니다.");
+		}
 	}
 
 }
