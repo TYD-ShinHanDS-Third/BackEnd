@@ -35,6 +35,7 @@ import com.shinhan.education.dto.MemberUpdateRequest;
 import com.shinhan.education.entity.Members;
 import com.shinhan.education.entity.Nice;
 import com.shinhan.education.jwt.JwtTokenProvider;
+import com.shinhan.education.mail.Approvalemail;
 import com.shinhan.education.mail.RegisterMail;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.respository.NiceRepository;
@@ -62,6 +63,9 @@ public class MembersController {
 
 	@Autowired
 	private RegisterMail registermail;
+	
+	@Autowired
+	private Approvalemail approvalemail;
 
 	@Autowired
 	private NiceRepository niceRepo;
@@ -242,23 +246,25 @@ public class MembersController {
 		return memberDTOList;
 	}
 
-	// 관리자가 사용자 Roles 수정
-
+	// 관리자가 사용자 Roles 수정 및 권한 승인 완료 메일 전송
 	@PutMapping("/admin/user")
-	public ResponseEntity<String> updateMemberRoles(@RequestParam String memberid, @RequestParam List<String> roles) {
-		try {
-			// 회원 업데이트
-			memberService.updateMemberRoles(memberid, roles);
+	public ResponseEntity<String> updateMemberRolesAndSendEmail(@RequestParam String memberid, @RequestParam List<String> roles, @RequestParam("email") String email) {
+	    try {
+	        // 회원 업데이트
+	        memberService.updateMemberRoles(memberid, roles);
 
-			// 업데이트 완료 메시지 반환
-			return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
-		} catch (Exception e) {
-			// 서버 오류 발생 시 500 응답 반환
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
-		}
+	        // 이메일 발송
+	        String code = approvalemail.sendSimpleMessage(email);
+
+	        // 업데이트 및 이메일 발송 완료 메시지 반환
+	        return ResponseEntity.ok("발송성공");
+	    } catch (Exception e) {
+	        // 서버 오류 발생 시 500 응답 반환
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("발송실패");
+	    }
 	}
 
-	// 이메일 인증
+	// 재직자 이메일 인증
 	@PostMapping("/email")
 	String mailConfirm(@RequestParam("email") String email) throws Exception {
 		String code = registermail.sendSimpleMessage(email);
