@@ -1,9 +1,6 @@
 package com.shinhan.education.controller;
 
-import java.util.ArrayList;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,7 +39,6 @@ import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
-import com.shinhan.education.vo.Role;
 
 import lombok.RequiredArgsConstructor;
 

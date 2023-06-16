@@ -30,28 +30,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authorizeRequests() // 요청에 대한 인가 설정을 시작
-				.antMatchers("/member/login").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
-				.antMatchers("/member/signup").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
-				.antMatchers("/member/login-success").permitAll()
-				.antMatchers("/member/update").permitAll()
-				.antMatchers("/member/users").permitAll()
-				.antMatchers("/member/checkDuplicateId").permitAll()
-				.antMatchers("/member/delete").permitAll()
-				.antMatchers("/member/members/{memberId}/roles").permitAll()
-				.antMatchers("/main").permitAll()
+				.antMatchers("/hows/all").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
+				.antMatchers("/hows/user").hasRole("USER")
+				.antMatchers("/hows/admin").hasRole("ADMIN")
+				.antMatchers("/hows/teller").hasRole("TELLER")
 				.antMatchers("/**").permitAll()
-				//.antMatchers("/member").hasRole("USER") // "/member" 경로로의 요청은 "USER" 권한을 가진 사용자에게만 허용됩니다. 즉, 해당 권한을 가지지
-														// 않은 사용자는 접근할 수 없다.
-				// .antMatchers("/admin/**").hasRole("ADMIN") //단일 권한 예시추가
-				// .antMatchers("/user/**").hasAnyRole("USER", "ADMIN") //다중 권한 예시추가
-				.anyRequest().authenticated() // 위에서 설정한 경로 이외의 모든 요청은 인증된 사용자에게만 허용됩니다. 인증되지 않은 사용자는 이러한 요청에 접근할 수
-												// 없습니다.
-				//addFilterBefore()사용하여 토큰 검증과 인증 처리를 수행한다.
-				.and()
-				.formLogin()
-	            .loginPage("/login.html") // 로그인 페이지 설정
-	            .permitAll()
+				.anyRequest().authenticated() // 위에서 설정한 경로 이외의 모든 요청은 인증된 사용자에게만 허용됩니다. 인증되지 않은 사용자는 이러한 요청에 접근할 수 없습니다.		
+//				.and()
+//				.formLogin()
+//	            .loginPage("/hows/all/login") // 로그인 페이지 설정
+//	            .permitAll()
 	            .and()
+	            //addFilterBefore()사용하여 토큰 검증과 인증 처리를 수행한다.
 				.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider()),
 						UsernamePasswordAuthenticationFilter.class);
 	}
