@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.shinhan.education.respository.ChatInfoRepository;
+import com.shinhan.education.respository.ChatRoomRepository;
 import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.HanaRepository;
 import com.shinhan.education.respository.KookminRepository;
@@ -40,6 +42,8 @@ import com.shinhan.education.respository.PanFavRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.respository.ShinhanRepository;
 import com.shinhan.education.respository.WooriRepository;
+import com.shinhan.education.vo.ChatInfo;
+import com.shinhan.education.vo.ChatRoom;
 import com.shinhan.education.vo.DetailPans;
 import com.shinhan.education.vo.Houses;
 import com.shinhan.education.vo.Loans;
@@ -83,6 +87,11 @@ public class HowsController {
 
 	@Autowired
 	MemberRepository memRepo;
+
+	@Autowired
+	ChatRoomRepository roomRepo;
+	@Autowired
+	ChatInfoRepository chatinfoRepo;
 
 	String getMemberId(String token) {
 		// String token =
@@ -324,13 +333,14 @@ public class HowsController {
 		return r;
 	}
 
-	// 상세 대출 html
-	@GetMapping(value = { "/loan/detail", "/admin/consult/chartoom" })
+	// 상세 대출 html -> 대출 상세보기했을 때 룸생성안하고 상세 정보만 보여주기
+	@GetMapping(value = { "/loan/detail" })
 	public <T> T detailhtml(HttpServletRequest request) {
-		System.out.println("상세 대출 html 요청 들어옴");
+		System.err.println("/loan/detail html 요청 들어옴");
 		String bankname = request.getParameter("bankname");
 		String loanname = request.getParameter("loanname");// 변수 이름 확인
-
+		System.err.println("bank : " + bankname);
+		System.err.println("loan : " + loanname);
 		if (bankname.equals("신한")) {
 			return (T) shinhanRepo.findById(loanname);
 		} else if (bankname.equals("국민")) {
@@ -343,37 +353,84 @@ public class HowsController {
 			return null;
 	}
 
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	// roomnumber
+
+	// 채팅
+
+	// 관리자가 채팅룸 입장하는 부분
+	// 과거 대화내용을 보내야한다.
+	@GetMapping(value = { "/admin/consult/chartoom" })
+	public <T> T adminEnterChatRoom(HttpServletRequest request) {
+		System.out.println("관리자 채팅 입장 요청 들어옴");
+
+		String roomnumber = request.getParameter("roomnumber");
+		ChatRoom room = roomRepo.findById(Long.parseLong(roomnumber)).get();
+		List<ChatInfo> chatlist = chatinfoRepo.findByChatroomOrderByTime(room);
+
+		return (T) chatlist;
+	}
+
+	// 회원이 상담신청을 통해 채팅을 처음 들어오는 부분
 	// 상세 대출 html 상담용
-	//대출 상담 신청 들어옴->memloan생성
-	//채팅룸 생성
+	// 대출 상담 신청 들어옴->memloan생성
+	// 없으면 채팅룸 생성-> 있으면 룸번호 반환
 	@GetMapping("/loan/detail/consult")
-	public <T> T detailhtmlforconsult(HttpServletRequest request) {
-		System.out.println("상세 대출상담 요청 들어옴");
+	public <T> T userCreateRoom(HttpServletRequest request) {
+		System.err.println("상세 대출상담 요청 들어옴");
 		String bankname = request.getParameter("bankname");
-		String loanname = request.getParameter("loanname");// 변수 이름 확인
-		String token = request.getParameter("token");
+		String loanname = request.getParameter("loanname");// 변수 이름 확인ㅌ
+		String token = request.getHeader("token");
+		System.out.println("token : " + token);
 		String memberid = getMemberId(token);
 		Loans loan = loanRepo.findById(loanname).get();
 		Members mem = memRepo.findById(memberid).get();
-		MemberLoans ml = MemberLoans.builder().memberid(mem).loanname(loan).loanstate("상담신청").build(); 
-		ml =memloanRepo.save(ml);
-		ml.getMemloanid();
-		//ChatRoom room = ChatRoom.builder().memloanid(ml.getMemloanid()).build();
-		//room = roomRepo.save(room);
-		//ml.setRoomnumber(room.getroomId());
-		//memloanRepo.save(ml2);
 
-		if (bankname.equals("신한")) {
-			return (T) shinhanRepo.findById(loanname);
-		} else if (bankname.equals("국민")) {
-			return (T) kookminRepo.findById(loanname);
-		} else if (bankname.equals("하나")) {
-			return (T) hanaRepo.findById(loanname);
-		} else if (bankname.equals("우리")) {
-			return (T) wooriRepo.findById(loanname);
-		} else
-			return null;
+		// 이미 관련 톡방이 있는지 확인
+		// 없으면 새로 룸 생성
+
+		List<MemberLoans> listml = memloanRepo.findByMemberidAndLoanname(mem, loan);
+
+		Map<String, Object> map = new HashMap<>();
+		if (listml.size() == 0) {// 방생성
+			System.out.println("1");
+			MemberLoans ml = MemberLoans.builder().memberid(mem).loanname(loan).loanstate("상담신청").build();
+			ml = memloanRepo.save(ml);
+			ml.getMemloanid();
+			ChatRoom room = ChatRoom.builder().memloanid(ml.getMemloanid()).build();// 룸생성
+			room = roomRepo.save(room);// db에 룸저장
+			ml.setRoomnumber(room.getRoomId());// 해당 memloan에다가 룸번호 저장
+			memloanRepo.save(ml);// db에 저장
+			map.put("message", "상담 신청 완료, 상담사와 채팅을 연결합니다.");
+			map.put("room", room.getRoomId());
+			return (T) map;
+		} else {
+			System.out.println("2");
+			MemberLoans ml = listml.get(0);
+
+			ChatRoom room = roomRepo.findByMemloanid(ml.getMemloanid());
+			map.put("message", "상담 신청 내역이 있습니다, 이전 채팅방에 입장합니다.");
+			map.put("room", room.getRoomId());
+			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));
+
+			return (T) map;
+		}
 	}
+
+	// 회원이 채팅을 입장하는부분(재입장) 마이페이지에서..
+	@GetMapping(value = { "/user/consult/chatroom" })
+	public <T> T userEnterChatRoom(HttpServletRequest request) {
+		System.out.println("관리자 채팅 입장 요청 들어옴");
+
+		String roomnumber = request.getParameter("roomnumber");
+		ChatRoom room = roomRepo.findById(Long.parseLong(roomnumber)).get();
+		List<ChatInfo> chatlist = chatinfoRepo.findByChatroomOrderByTime(room);
+
+		return (T) chatlist;
+	}
+
+	// -------------------------------------------------------------------------------------------------------------------------------------
 
 	// member loans 테이블에 서류 제출
 	@PostMapping("/loan/detail/limit/uploaddocs")
@@ -443,13 +500,14 @@ public class HowsController {
 
 	}
 
-	@GetMapping("/admin/consult") // 관리자와 회원의 상담목록
+//-----------------------------------------------------------------------------------------------------------------------------------
+	@GetMapping("/admin/consult") // 관리자와 회원의 상담목록//room번호도 같이 보내줘야한다.
 	public List<Map<String, Object>> consultlist(HttpServletRequest request) {
 		System.err.println("관리자와 회원의 상담목록");
 		Integer page = Integer.parseInt(request.getParameter("page"));
 		Integer size = Integer.parseInt(request.getParameter("size"));
 		Pageable pageable = PageRequest.of(page, size);
-		
+
 		List<Map<String, Object>> objList = new ArrayList<>();
 		Page<MemberLoans> mllist2 = memloanRepo.findAll(pageable);
 		Long total = mllist2.getTotalElements();
@@ -464,6 +522,7 @@ public class HowsController {
 			obj.put("loanname", mem.getLoanname());
 			obj.put("loanstate", mem.getLoanstate());
 			obj.put("total", total);
+			obj.put("roomnumber", mem.getRoomnumber());// 방번호
 			objList.add(obj);
 		});
 
@@ -473,13 +532,15 @@ public class HowsController {
 		return objList;
 	}
 
+//-----------------------------------------------------------------------------------------------------------------------------------------
 	@GetMapping("/admin/form") /*
 								 * 관리자가 회원의 서류 제출 내역 목록 확인하기 위한 회원 리스트
 								 * 
 								 * 대출심사대기중인 회원의 목록을 보여준다
 								 */
 	public List<Map<String, Object>> getMemberDocs(HttpServletRequest request) {
-		//Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
+		// Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
+		System.err.println("admin/form 대출심사대기중인 목록");
 		Integer page = Integer.parseInt(request.getParameter("page"));
 		Integer size = Integer.parseInt(request.getParameter("size"));
 
@@ -500,24 +561,23 @@ public class HowsController {
 
 			objList.add(obj);
 		});
-
+		System.out.println(objList);
 		return objList;
 
 	}
-	
-	@GetMapping("/admin/form/checklist")//회원 한명당 상세 제출 내역 확인
-	public Map<String,Object> getform(HttpServletRequest request) {
-		Map<String,Object> objlist = new HashMap<>();
+
+	@GetMapping("/admin/form/checklist") // 회원 한명당 상세 제출 내역 확인
+	public Map<String, Object> getform(HttpServletRequest request) {
+		Map<String, Object> objlist = new HashMap<>();
 		String loanid = request.getParameter("loanid");
-		
-		
-		MemberLoans ml =  memloanRepo.findById(Integer.parseInt(loanid)).get();
+
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
 		objlist.put("loanid", ml.getMemloanid());
 		objlist.put("membername", ml.getMemberid().getMembername());
 		objlist.put("bankname", ml.getLoanname().getBankname());
 		objlist.put("loanname", ml.getLoanname());
 		objlist.put("loanstate", ml.getLoanstate());
-		
+
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
 		objlist.put("depositReceipt", ml.getDepositReceipt());
@@ -528,24 +588,24 @@ public class HowsController {
 		objlist.put("employmentProof", ml.getEmploymentProof());
 		objlist.put("businessProof", ml.getBusinessProof());
 		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
-		
+
 		return objlist;
-		//bankname이 전달되나??
-		
-	} 
-	
-	@PutMapping("/admin/form/checklist")//대출승인대기로 바꾼다
+		// bankname이 전달되나??
+
+	}
+
+	@PutMapping("/admin/form/checklist") // 대출승인대기로 바꾼다
 	public String formchecked(HttpServletRequest request) {
 		String loanid = request.getParameter("loanid");
 		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
 		ml.setLoanstate("대출승인대기");
 		memloanRepo.save(ml);
-		return  "대출심사완료!!";
+		return "대출심사완료!!";
 	}
-	
-	@GetMapping("/bank/form")//대출승인대기중인 목록을 가져온다
+
+	@GetMapping("/bank/form") // 대출승인대기중인 목록을 가져온다
 	public List<Map<String, Object>> getMemberDocs2(HttpServletRequest request) {
-		//Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
+		// Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
 		Integer page = Integer.parseInt(request.getParameter("page"));
 		Integer size = Integer.parseInt(request.getParameter("size"));
 
@@ -570,19 +630,18 @@ public class HowsController {
 		return objList;
 	}
 
-	@GetMapping("/bank/loanlist/detail")//은행원이 한명의 회원의 제출된 서류 목록을 가져온다
-	public Map<String,Object> getform2(HttpServletRequest request) {
-		Map<String,Object> objlist = new HashMap<>();
+	@GetMapping("/bank/loanlist/detail") // 은행원이 한명의 회원의 제출된 서류 목록을 가져온다
+	public Map<String, Object> getform2(HttpServletRequest request) {
+		Map<String, Object> objlist = new HashMap<>();
 		String loanid = request.getParameter("loanid");
-		
-		
-		MemberLoans ml =  memloanRepo.findById(Integer.parseInt(loanid)).get();
+
+		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
 		objlist.put("loanid", ml.getMemloanid());
 		objlist.put("membername", ml.getMemberid().getMembername());
 		objlist.put("bankname", ml.getLoanname().getBankname());
 		objlist.put("loanname", ml.getLoanname());
 		objlist.put("loanstate", ml.getLoanstate());
-		
+
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
 		objlist.put("depositReceipt", ml.getDepositReceipt());
@@ -593,22 +652,22 @@ public class HowsController {
 		objlist.put("employmentProof", ml.getEmploymentProof());
 		objlist.put("businessProof", ml.getBusinessProof());
 		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
-		
+
 		return objlist;
 	}
-	@PutMapping("/bank/loanlist/detail")//대출승인대기로 바꾼다
+
+	@PutMapping("/bank/loanlist/detail") // 대출승인대기로 바꾼다
 	public String formchecked2(HttpServletRequest request) {
 		String loanid = request.getParameter("loanid");
 		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
 		ml.setLoanstate("대출승인완료");
 		memloanRepo.save(ml);
-		return  "대출승인완료!!";
+		return "대출승인완료!!";
 	}
-	
-	//--------------------------------------------------------------------------
-	
-	
-	@PutMapping("/updateurl")//상담 후 신청 url을 DB에 저장한다
+
+	// --------------------------------------------------------------------------
+
+	@PutMapping("/updateurl") // 상담 후 신청 url을 DB에 저장한다
 	public String updateurl(HttpServletRequest request) {
 		String newurl = request.getParameter("url");
 		String loanid = request.getParameter("loanid");
@@ -617,19 +676,17 @@ public class HowsController {
 		memloanRepo.save(ml);
 		return "url수정완료";
 	}
-	
-	
-	//은행원이 승인 거부
+
+	// 은행원이 승인 거부
 	@PutMapping("bank/reject")
 	public String rejectloan(HttpServletRequest request) {
-		
+
 		String loanid = request.getParameter("loanid");
 		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
 		ml.setLoanstate("승인거부");
 		memloanRepo.save(ml);
 		return "승인거부완료";
-		
+
 	}
-	
-	
+
 }

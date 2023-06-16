@@ -6,7 +6,7 @@ import com.shinhan.education.vo.ChatRoom;
 
 public interface ChatRoomRepository extends CrudRepository<ChatRoom, Long>{
 	
-	
+	ChatRoom findByMemloanid(Integer integer);
 	
 }
 

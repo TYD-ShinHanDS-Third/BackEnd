@@ -144,7 +144,11 @@ public class HanaCrawling {
 		driver.get(link);
 
 		WebElement prodname = driver.findElement(By.xpath("//*[@id=\"contents\"]/div[2]/h3"));
-		String productname = prodname.getText().toString();
+		String text = prodname.getText().trim();
+		String spanText = prodname.findElement(By.xpath("span")).getText().trim();
+		String productname = text.replace(spanText, "").trim();
+		////*[@id="contents"]/div[2]/h3/text()
+		//String productname = prodname.getText().toString();
 
 		String bankname = "하나";
 

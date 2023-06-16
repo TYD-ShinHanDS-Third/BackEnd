@@ -2,6 +2,7 @@ package com.shinhan.education.vo;
 
 import java.sql.Timestamp;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -34,7 +35,8 @@ public class ChatInfo {
 	@JoinColumn(name = "chat_room_id")
 	private ChatRoom chatroom; // 채팅방
 	
-	private String token; // 채팅을 보낸 사람
+	@Column(name = "myname")   //
+	private String myname; // 채팅을 보낸 사람
 	private String msg; // 메시지 내용
 	
 	@CreationTimestamp

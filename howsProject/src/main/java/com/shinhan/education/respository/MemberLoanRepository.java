@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.shinhan.education.vo.Loans;
 import com.shinhan.education.vo.MemberLoans;
 import com.shinhan.education.vo.Members;
 
@@ -15,11 +16,10 @@ public interface MemberLoanRepository extends JpaRepository<MemberLoans, Integer
 
 	List<MemberLoans> findByMemberid(Members memberid);
 
-	
 	@Query("select ml from MemberLoans ml, Loans l, Members m "
-	        + "where ml.memberid = m.memberid and l.loanname = ml.loanname and ml.loanstate = :stateA")
+			+ "where ml.memberid = m.memberid and l.loanname = ml.loanname and ml.loanstate = :stateA")
 	Page<MemberLoans> findByState(@Param("stateA") String stateA, Pageable pageable);
 
-	
+	List<MemberLoans> findByMemberidAndLoanname(Members member, Loans loan);
 
 }

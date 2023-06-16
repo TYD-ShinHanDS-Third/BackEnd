@@ -70,26 +70,26 @@ public class WebSocketChat {
 		}
 
 		// 과거 데이터 전송
-		roomRepo.findById(room).ifPresent((x) -> {
-
-			List<ChatInfo> chatlist = chatinfoRepo.findByChatroomOrderByTime(x);
-			for (ChatInfo ci : chatlist) {
-				String chatHistoryJson  = null;
-				ObjectMapper mapper = new ObjectMapper();
-				try {
-					chatHistoryJson = mapper.writeValueAsString(ci);
-				} catch (JsonProcessingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				try {
-					session.getBasicRemote().sendText(chatHistoryJson);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
+//		roomRepo.findById(room).ifPresent((x) -> {
+//
+//			List<ChatInfo> chatlist = chatinfoRepo.findByChatroomOrderByTime(x);
+//			for (ChatInfo ci : chatlist) {
+//				String chatHistoryJson  = null;
+//				ObjectMapper mapper = new ObjectMapper();
+//				try {
+//					chatHistoryJson = mapper.writeValueAsString(ci);
+//				} catch (JsonProcessingException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				try {
+//					session.getBasicRemote().sendText(chatHistoryJson);
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		});
 
 	}
 
@@ -97,6 +97,7 @@ public class WebSocketChat {
 	// session에게 메세지를 전달합니다.
 	@OnMessage // 메세지 수신 시
 	public void onMessage(String message, Session session) throws IOException {
+		System.err.println("웹소켓온메세지");
 		// 들어온 채팅메세지와 사용자 정보를 DB저장한다.
 		// 사용자 이름은 토큰으로 온다.
 
@@ -104,7 +105,8 @@ public class WebSocketChat {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode jsonNode = mapper.readTree(message);
 		String msg = jsonNode.get("msg").asText();
-		String token = jsonNode.get("token").asText();
+		//String token = jsonNode.get("token").asText();
+		String membername = jsonNode.get("myname").asText();
 		Long chatid = Long.parseLong(jsonNode.get("room").asText());
 		// String memberid = tts.getMemberId(token);
 		System.err.println("2 : " + chatid);
@@ -113,7 +115,7 @@ public class WebSocketChat {
 			System.out.println("no chat room");
 			return;
 		}
-		ChatInfo ci = ChatInfo.builder().token(token).msg(message).chatroom(cr).build();
+		ChatInfo ci = ChatInfo.builder().myname(membername).msg(msg).chatroom(cr).build();
 
 		chatinfoRepo.save(ci);
 
