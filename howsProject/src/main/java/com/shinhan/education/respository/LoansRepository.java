@@ -10,7 +10,7 @@ public interface LoansRepository extends CrudRepository<Loans, String>{
 
 	Page<Loans> findAll(Pageable pageable);
 	
-	
+	Page<Loans> findByBankname(String bankname, Pageable pageable);
 	
 }
 

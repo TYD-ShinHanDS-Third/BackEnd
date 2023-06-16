@@ -38,6 +38,7 @@ import com.shinhan.education.respository.KookminRepository;
 import com.shinhan.education.respository.LoansRepository;
 import com.shinhan.education.respository.MemberLoanRepository;
 import com.shinhan.education.respository.MemberRepository;
+import com.shinhan.education.respository.NiceRepository;
 import com.shinhan.education.respository.PanFavRepository;
 import com.shinhan.education.respository.PanRepository;
 import com.shinhan.education.respository.ShinhanRepository;
@@ -49,6 +50,7 @@ import com.shinhan.education.vo.Houses;
 import com.shinhan.education.vo.Loans;
 import com.shinhan.education.vo.MemberLoans;
 import com.shinhan.education.vo.Members;
+import com.shinhan.education.vo.Nice;
 import com.shinhan.education.vo.PanFavorites;
 import com.shinhan.education.vo.PanFavoritesId;
 import com.shinhan.education.vo.Pans;
@@ -92,6 +94,9 @@ public class HowsController {
 	ChatRoomRepository roomRepo;
 	@Autowired
 	ChatInfoRepository chatinfoRepo;
+
+	@Autowired
+	NiceRepository niceRepo;
 
 	String getMemberId(String token) {
 		// String token =
@@ -321,11 +326,14 @@ public class HowsController {
 	public RequestVO<List<Loans>> loanlist(HttpServletRequest request) {
 		int page = Integer.parseInt(request.getParameter("page"));
 		int size = Integer.parseInt(request.getParameter("size"));
+		
+		String bankname = request.getParameter("bankname");
+		
 		RequestVO<List<Loans>> r = new RequestVO<List<Loans>>();
 		System.out.println("대출 전체 목록 요청 들어옴");
 		Pageable pageable = PageRequest.of(page, size, Sort.by("loanname").ascending());
 
-		Page<Loans> loanlist = loanRepo.findAll(pageable);
+		Page<Loans> loanlist = loanRepo.findByBankname(bankname, pageable);//->은행별로바꾸기 전체, 신한 국민 우리 하나
 		List<Loans> loans = loanlist.getContent();
 		int total = (int) loanlist.getTotalElements();
 		r.setObj(loans);
@@ -351,6 +359,41 @@ public class HowsController {
 			return (T) wooriRepo.findById(loanname);
 		} else
 			return null;
+	}
+
+	// 한도조회
+	@GetMapping(value = "/loan/detail/limit")
+	public String getlimit(HttpServletRequest request) {
+
+		String juminfront = request.getParameter("juminfront");
+		String juminback = request.getParameter("juminback");
+		String jumin = juminfront + juminback;
+		Nice niceinfo = niceRepo.findById(jumin).get();
+		Integer score = niceinfo.getScore();
+		String maxloan = "0원";
+		if (score >= 900) {
+			maxloan = "100,000,000원";
+		} else if (score >= 800) {
+			maxloan = "90,000,000원";
+		} else if (score >= 700) {
+			maxloan = "80,000,000원";
+		} else if (score >= 600) {
+			maxloan = "70,000,000원";
+		}
+		else if (score >= 500) {
+			maxloan = "60,000,000원";
+		} else if (score >= 400) {
+			maxloan = "50,000,000원";
+		} else if (score >= 300) {
+			maxloan = "40,000,000원";
+		} else if (score >= 200) {
+			maxloan = "30,000,000원";
+		} else if (score >= 100) {
+			maxloan = "20,000,000원";
+		} else {
+			maxloan = "신용불량";
+		}
+		return maxloan;
 	}
 
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -421,7 +464,7 @@ public class HowsController {
 	// 회원이 채팅을 입장하는부분(재입장) 마이페이지에서..
 	@GetMapping(value = { "/user/consult/chatroom" })
 	public <T> T userEnterChatRoom(HttpServletRequest request) {
-		System.out.println("관리자 채팅 입장 요청 들어옴");
+		System.out.println("회원 채팅 입장 요청 들어옴");
 
 		String roomnumber = request.getParameter("roomnumber");
 		ChatRoom room = roomRepo.findById(Long.parseLong(roomnumber)).get();
@@ -484,7 +527,7 @@ public class HowsController {
 
 	// 마이페이지 대출목록
 	@GetMapping(value = "/my/mypage/loan")
-	public List<MemberLoans> mypageloan(HttpServletRequest request) {
+	public List<List<Map<String,Object>>> mypageloan(HttpServletRequest request) {
 		System.err.println("마이페이지 대출목록 요청 들어옴");
 		String token = request.getHeader("token");
 		String memberid = getMemberId(token);
@@ -493,10 +536,41 @@ public class HowsController {
 		Members mem = memRepo.findById(memberid).get();
 		List<MemberLoans> mllist = memloanRepo.findByMemberid(mem);
 		System.out.println("대출목록 : ");
-		mllist.forEach((x) -> {
+		
+		
+		List<Map<String,Object>> listA = new ArrayList();
+		List<Map<String,Object>> listB = new ArrayList();
+		
+		mllist.forEach((x) -> {			
+			
+			Map<String,Object> mapA = new HashMap<>();
+			Map<String,Object> mapB = new HashMap<>();
+			mapA.put("loanname", x.getLoanname().getLoanname());
+			mapA.put("bankname", x.getLoanname().getBankname());
+			mapA.put("loanstate", x.getLoanstate());
+			mapA.put("applyurl", x.getApplyurl());
+			mapA.put("memloanid", x.getMemloanid());
+			
+			mapB.put("loanname", x.getLoanname().getLoanname());
+			mapB.put("bankname", x.getLoanname().getBankname());
+			mapB.put("room", x.getRoomnumber());
+			
+			listA.add(mapA);
+			listB.add(mapB);
+			
 			System.out.println(x);
 		});
-		return mllist;
+		
+		List<List<Map<String,Object>>> listC = new ArrayList();
+		
+		listC.add(listA);
+		listC.add(listB);
+		
+		//맵두개를 하나로 묶어서 보낸다
+		//1.List 대출상품이름loanname, 은행이름bankname, 진행상태loanstate, 신청링크applyurl
+		//2.List  bankname, room
+		System.err.println(listC);
+		return listC;
 
 	}
 
@@ -688,5 +762,7 @@ public class HowsController {
 		return "승인거부완료";
 
 	}
+	
+
 
 }

@@ -1,8 +1,10 @@
 package com.shinhan.education.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,13 +21,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.mail.RegisterMail;
 import com.shinhan.education.respository.MemberRepository;
+import com.shinhan.education.respository.NiceRepository;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberDTO;
 import com.shinhan.education.vo.MemberLevel;
@@ -33,6 +35,7 @@ import com.shinhan.education.vo.MemberLoginRequest;
 import com.shinhan.education.vo.MemberSignUpRequest;
 import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
+import com.shinhan.education.vo.Nice;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
 
@@ -51,9 +54,12 @@ public class MembersController {
 
 	@Autowired
 	private MemberService memberService;
-	
+
 	@Autowired
 	private RegisterMail registermail;
+
+	@Autowired
+	private NiceRepository niceRepo;
 
 	// 토큰에서 memberid 추출
 	String getMemberId(String token) {
@@ -85,6 +91,24 @@ public class MembersController {
 			// 회원 가입 처리
 			memberService.signUp(request, memberLevel);
 
+			
+			// 주민등록번호 자동생성해서 nice테이블에 저장. 신용등급은 기본 800
+			SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
+			String juminfront = sdf.format(request.getBday());
+			Random random = new Random();
+			StringBuilder sb = new StringBuilder();
+			for(int i=0;i<7;i++) {
+				int digit;
+				if(i==0)digit = random.nextInt(4)+1;
+				else digit = random.nextInt(10);
+				sb.append(digit);
+			}
+			String juminback = sb.toString();
+			String jumin = juminfront + juminback;
+			Nice nice = Nice.builder().jumin(jumin).name(request.getMembername()).score(800).build();
+			niceRepo.save(nice);
+			
+			
 			return new ResponseEntity<>("success.", HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -243,9 +267,9 @@ public class MembersController {
 
 	// 이메일 인증
 	@PostMapping("/email")
-    String mailConfirm(@RequestParam("email") String email) throws Exception {
-       String code = registermail.sendSimpleMessage(email);
-       System.out.println("인증코드 : " + code);
-       return code;
-    }
+	String mailConfirm(@RequestParam("email") String email) throws Exception {
+		String code = registermail.sendSimpleMessage(email);
+		System.out.println("인증코드 : " + code);
+		return code;
+	}
 }
