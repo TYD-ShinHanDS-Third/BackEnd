@@ -40,7 +40,6 @@ public class WebSocketChat {
 	
 
 	TokenToString tts = new TokenToString();
-
 	@Autowired
 	ChatRoomRepository roomRepo;
 	@Autowired

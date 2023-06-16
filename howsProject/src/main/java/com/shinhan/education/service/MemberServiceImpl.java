@@ -242,6 +242,7 @@ public class MemberServiceImpl implements MemberService {
 		Optional<Members> optionalMember = getMemberByid(memberid);
 		if (optionalMember.isPresent()) {
 			Members member = optionalMember.get();
+			System.out.println(member);
 			member.setRoles(roles);
 			memberRepo.save(member); // 멤버에 저장
 		} else {

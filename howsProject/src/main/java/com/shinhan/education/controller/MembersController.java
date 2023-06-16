@@ -1,5 +1,6 @@
 package com.shinhan.education.controller;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.mail.RegisterMail;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.service.MemberService;
+import com.shinhan.education.vo.AdminUserInfoShowDTO;
 import com.shinhan.education.vo.MemberDTO;
 import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.MemberLoginRequest;
@@ -35,6 +37,7 @@ import com.shinhan.education.vo.MemberUpdateRequest;
 import com.shinhan.education.vo.Members;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
+import com.shinhan.education.vo.Role;
 
 import lombok.RequiredArgsConstructor;
 
@@ -214,31 +217,20 @@ public class MembersController {
 	}
 
 	// 관리자가 사용자 Roles 수정
-	@PutMapping("/admin/{memberid}/user")
-	public ResponseEntity<String> updateMemberRoles(@PathVariable String memberid, @RequestBody List<String> roles) {
-		try {
-			// 회원 조회
-			Optional<Members> memberOptional = memberService.getMemberByid(memberid);
 
-			if (!memberOptional.isPresent()) {
-				// 회원이 존재하지 않을 경우 404 응답 반환
-				return ResponseEntity.notFound().build();
-			}
 
-			Members member = memberOptional.get();
+	@PutMapping("/admin/user")
+	public ResponseEntity<String> updateMemberRoles(@RequestParam String memberid, @RequestParam List<String> roles) {
+	    try {
+	        // 회원 업데이트
+	        memberService.updateMemberRoles(memberid, roles);
 
-			// 회원의 roles 설정
-			member.setRoles(roles);
-
-			// 회원 업데이트
-			memberService.updateMemberRoles(memberid, roles);
-
-			// 업데이트 완료 메시지 반환
-			return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
-		} catch (Exception e) {
-			// 서버 오류 발생 시 500 응답 반환
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
-		}
+	        // 업데이트 완료 메시지 반환
+	        return ResponseEntity.ok("회원의 roles가 업데이트되었습니다.");
+	    } catch (Exception e) {
+	        // 서버 오류 발생 시 500 응답 반환
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원의 roles 업데이트 중 오류가 발생했습니다.");
+	    }
 	}
 
 	// 이메일 인증
@@ -248,4 +240,34 @@ public class MembersController {
        System.out.println("인증코드 : " + code);
        return code;
     }
+	
+	 //상담신청 후 해당 userid값으로 user의추가정보 및 선택한상품명을 클라이언트에게 제공
+	@GetMapping("/admin/userinfoshow")
+	public ResponseEntity<?> getUserInfoShow(HttpServletRequest request) {
+	    String token = request.getHeader("token");
+	    if (token == null) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 유효하지 않습니다.");
+	    }
+	    String memberid = getMemberId(token);
+	    try {
+	        // memberid를 기반으로 DB에서 추가 정보 조회
+	        Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
+	        if (memberOptional.isPresent()) {
+	            Members member = memberOptional.get();
+	            	            // 필요한 정보를 AdminUserInfoShowDTO에 설정
+	            AdminUserInfoShowDTO userInfoShowDTO = new AdminUserInfoShowDTO();
+	            userInfoShowDTO.setHasjob(member.getHasjob());
+	            userInfoShowDTO.setJobname(member.getJobname());
+	            userInfoShowDTO.setHiredate(member.getHiredate());
+	            userInfoShowDTO.setMarry(member.getMarry());
+	            userInfoShowDTO.setHaschild(member.getHaschild());
+	            return ResponseEntity.ok(userInfoShowDTO);
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("회원이 존재하지 않습니다.");
+	        }
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("추가 정보 조회 중 오류가 발생했습니다.");
+	    }
+	}
+
 }

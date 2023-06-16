@@ -43,12 +43,12 @@ public class MembersControllerTest {
 	//@Test
 	public void testSaveMember() {
 	    MemberSignUpRequest requestDto = MemberSignUpRequest.builder()
-	            .memberid("ckdrua235454")
+	            .memberid("ckdrua878")
 	            .membername("김테cnasd")
 	            .pswd("1234")
 	            .bday(Date.valueOf(LocalDate.parse("1497-04-25")))
 	            .phone("010-4312-1112")
-	            .roles(Role.USER)
+	            .roles(Role.ADMIN)
 	            .accBank("국민은행")
 	            .accno("45645645646")
 	            .hasjob(1)
