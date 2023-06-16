@@ -59,6 +59,9 @@ import com.shinhan.education.vo.RequestVO;
 
 @RestController
 @RequestMapping("/hows")
+
+/* 이자율계산기 : https://wildeveloperetrain.tistory.com/118 */
+
 public class HowsController {
 	@Autowired
 	PanRepository panRepo;
@@ -130,7 +133,7 @@ public class HowsController {
 		System.out.println("size : " + size);
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
-		Page<Pans> panPage = panRepo.findAll(pageable);
+		Page<Pans> panPage = panRepo.findAllByOrderByPanstartdateDesc(pageable);
 		List<Pans> panList = panPage.getContent();
 
 		if (token != null) {// 로그인 된 상태 -> 좋아요 확인하자
@@ -237,7 +240,7 @@ public class HowsController {
 		int size = Integer.parseInt(request.getParameter("size"));
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by("panstartdate").ascending());
-		Page<Pans> loclist = panRepo.findByLocationContaining(location, pageable);
+		Page<Pans> loclist = panRepo.findByLocationContainingOrderByPanstartdateDesc(location, pageable);
 
 		RequestVO<List<Pans>> r = new RequestVO<List<Pans>>();
 
@@ -330,7 +333,7 @@ public class HowsController {
 		String bankname = request.getParameter("bankname");
 
 		RequestVO<List<Loans>> r = new RequestVO<List<Loans>>();
-		System.out.println("대출 전체 목록 요청 들어옴");
+		System.err.println("대출 " + bankname + " 목록 요청 들어옴");
 		Pageable pageable = PageRequest.of(page, size, Sort.by("loanname").ascending());
 		Page<Loans> loanlist = null;
 		if (bankname.equals("전체")) {
@@ -453,6 +456,7 @@ public class HowsController {
 			memloanRepo.save(ml);// db에 저장
 			map.put("message", "상담 신청 완료, 상담사와 채팅을 연결합니다.");
 			map.put("room", room.getRoomId());
+			map.put("myname", mem.getMemberid());
 			return (T) map;
 		} else {
 			System.out.println("2");
@@ -461,8 +465,8 @@ public class HowsController {
 			ChatRoom room = roomRepo.findByMemloanid(ml.getMemloanid());
 			map.put("message", "상담 신청 내역이 있습니다, 이전 채팅방에 입장합니다.");
 			map.put("room", room.getRoomId());
-			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));
-
+			map.put("myname", mem.getMemberid());
+			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));			
 			return (T) map;
 		}
 	}

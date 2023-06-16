@@ -1,5 +1,8 @@
 package com.shinhan.education.entity;
 
+import java.math.BigDecimal;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -34,8 +37,12 @@ public class Houses {
 	private Double supplyarea;
 	private Integer rent;
 	private Integer monthrent;
-	
-	
+	 @Column(precision = 19, scale = 11)
+	private BigDecimal xPos;
+	 @Column(precision = 19, scale = 11)
+	private BigDecimal yPos;
+		 
+	 
 //	- HOUSECODE: AUTO(PK)
 //	- SI:"서울특별시" 광역시도명
 //	- SIGUNGU":"중구", 시군구명

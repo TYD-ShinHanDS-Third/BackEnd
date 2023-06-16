@@ -11,11 +11,11 @@ import org.springframework.data.repository.query.Param;
 import com.shinhan.education.entity.Pans;
 
 public interface PanRepository extends JpaRepository<Pans, String> {
-	Page<Pans> findAll(Pageable pageable);
+	Page<Pans> findAllByOrderByPanstartdateDesc(Pageable pageable);
 
-	Page<Pans> findByLocationContaining(String location, Pageable pageable);// 지역별 공고 가져오기
+	Page<Pans> findByLocationContainingOrderByPanstartdateDesc(String location, Pageable pageable);// 지역별 공고 가져오기
 	
-	@Query("SELECT p FROM Pans p WHERE p.panstate <> :panstate")
+	@Query("SELECT p FROM Pans p WHERE p.panstate <> :panstate order by panstartdate desc")
 	Page<Pans> findByPanstate(String panstate, Pageable pageable);
 
 	@Query("SELECT p FROM Pans p JOIN PanFavorites pf ON p.panid = pf.panid WHERE pf.memberid = :memberid")
