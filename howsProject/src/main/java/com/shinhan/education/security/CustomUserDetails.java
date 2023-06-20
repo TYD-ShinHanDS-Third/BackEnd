@@ -28,7 +28,6 @@ public class CustomUserDetails implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }
-    
     @Override
     public String getPassword() {
         // 사용자의 비밀번호를 반환
