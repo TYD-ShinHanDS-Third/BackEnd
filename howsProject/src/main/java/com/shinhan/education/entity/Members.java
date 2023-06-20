@@ -86,4 +86,9 @@ public class Members {
 	    }
 	}
 
+	  public boolean isEnabled() {
+	        // Implement the logic to determine if the user account is enabled or disabled
+	        // Return true if the account is enabled, or false if it is disabled
+	        return isEnabled(); // Replace with your actual logic
+	    }
 }

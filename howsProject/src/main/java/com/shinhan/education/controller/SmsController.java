@@ -22,7 +22,7 @@ public class SmsController {
     }
     
     //은행원이 승인 or 부접합 눌렀을때 안내 메세지 전송
-    @PostMapping("/phone")
+    @PostMapping("/auth/phone")
     public String apporveSms(@RequestParam("tel") String tel,
                              @RequestParam("membername") String membername,
                              @RequestParam("loanname") String loanname) {
@@ -33,7 +33,7 @@ public class SmsController {
     }
     
     // 회원가입시 본인확인 메세지 전송
-    @PostMapping("/send")
+    @PostMapping("/auth/send")
     public String sendSms(@RequestParam("tel")String tel) {
         String verificationCode = sendRandomMessage(tel);
         return verificationCode;

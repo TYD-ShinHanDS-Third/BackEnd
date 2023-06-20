@@ -141,11 +141,11 @@ public class MembersController {
 			// 인증에 성공한 경우, 토큰을 생성한다.
 			String token = jwtTokenProvider.createToken(member.getMemberid(),
 					memberService.getRoles(member.getMemberid()));
-
+			System.out.println("login ... token: " + token);
 			// 토큰을 클라이언트에게 전달하기 위해 HTTP 응답 헤더에 포함시킵니다.
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", token);
-			//headers.add("myname", member.getMemberid());
+			headers.add("myname", member.getMemberid());
 
 			// 토큰이 포함된 응답을 클라이언트에게 전달합니다.
 			return ResponseEntity.ok().headers(headers).build();
@@ -213,7 +213,7 @@ public class MembersController {
 	}
 
 	// 토큰에서 회원id 추출 후 해당 회원id값으로 회원정보 제공(Mypage)
-	@GetMapping("/mypage")
+	@GetMapping("/auth/mypage")
 	public ResponseEntity<?> getMemberForEdit(HttpServletRequest request) {
 		String token = request.getHeader("token");
 		if (token == null) {

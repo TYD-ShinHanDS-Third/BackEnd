@@ -2,9 +2,9 @@ package com.shinhan.education.vo;
 
 //열거형
 public enum Role {
-    USER("User"),
-    ADMIN("Admin"),
-    TELLER("Teller");
+    USER("USER"),
+    ADMIN("ADMIN"),
+    TELLER("TELLER");
 
     private final String roleName;
 
