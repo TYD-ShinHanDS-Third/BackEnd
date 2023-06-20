@@ -1,5 +1,6 @@
 package com.shinhan.education.controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,6 +47,7 @@ import com.shinhan.education.respository.ChatInfoRepository;
 import com.shinhan.education.respository.ChatRoomRepository;
 import com.shinhan.education.respository.DetailPanRepository;
 import com.shinhan.education.respository.HanaRepository;
+import com.shinhan.education.respository.HouseRepository;
 import com.shinhan.education.respository.KookminRepository;
 import com.shinhan.education.respository.LoansRepository;
 import com.shinhan.education.respository.MemberLoanRepository;
@@ -56,7 +59,9 @@ import com.shinhan.education.respository.ShinhanRepository;
 import com.shinhan.education.respository.WooriRepository;
 import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
+import com.shinhan.education.vo.XYResult;
 
+@CrossOrigin // (origins = "3000")
 @RestController
 @RequestMapping("/hows")
 
@@ -100,6 +105,9 @@ public class HowsController {
 
 	@Autowired
 	NiceRepository niceRepo;
+
+	@Autowired
+	HouseRepository houseRepo;
 
 	String getMemberId(String token) {
 		// String token =
@@ -300,11 +308,12 @@ public class HowsController {
 				pan.setLike(1);
 			});
 		}
-		System.out.println(panList);
+		// System.out.println(panList);
 
 		RequestVO<List<Pans>> r = new RequestVO<List<Pans>>();
 		long total = panPage.getTotalElements();
 		panList = panPage.getContent();
+		System.err.println("**" + panList);
 		r.setObj(panList);
 		r.setTotal((int) total);
 		System.out.println("panList");
@@ -319,9 +328,47 @@ public class HowsController {
 	// ex) { houseaddress : “서울시 마포구” }
 	// { 도로명 주소from houses }
 	// ?
-	@GetMapping(value = "/notice/find")
-	public List<Houses> selectByAddress(String houseaddress) {
-		return null;
+	@GetMapping(value = "/find")
+	public Map<String, XYResult> selectByAddress(HttpServletRequest request) {
+		// String houseaddress = "서울특별시 중랑구 겸재로30길 35-5";
+		System.out.println("find요청 들어옴");
+//		String houseaddress = request.getParameter("houseaddress");
+		// System.out.println("주소 : " + houseaddress);
+		// if (houseaddress != null) {
+		// List<Houses> hlist = houseRepo.findXY(houseaddress);
+		// BigDecimal x = hlist.get(0).getXPos();
+		// BigDecimal y = hlist.get(0).getYPos();
+		// System.out.println(x + " " + y);
+
+		String string_x = request.getParameter("x").toString();
+		String string_y = request.getParameter("y").toString();
+		
+		System.out.println(string_x + " "  + string_y);
+		BigDecimal x = new BigDecimal(string_x);
+		BigDecimal y = new BigDecimal(string_y);
+		
+		String num = "0.00500000";
+		BigDecimal x1 = x.add(new BigDecimal(num));
+		BigDecimal x2 = x.subtract(new BigDecimal(num));
+		BigDecimal y1 = y.add(new BigDecimal(num));
+		BigDecimal y2 = y.subtract(new BigDecimal(num));
+		System.out.println(x1 + " " + x2 + " " + y1 + " " + y2);
+		List<Houses> hlist2 = houseRepo.findByXPosBetweenAndYPosBetween(x2, x1, y2, y1);
+		System.out.println("size : " + hlist2.size());
+		Map<String, XYResult> xyMap = new HashMap<>();
+		hlist2.forEach((house) -> {
+
+			XYResult xy = new XYResult();
+			xy.setX(house.getXPos());
+			xy.setY(house.getYPos());
+			xyMap.put(house.getRoadaddress(), xy);
+		});
+
+		System.out.println(xyMap);
+
+		return xyMap;
+		// } else
+		// return null;
 	}
 
 	// 대출 전체 목록
@@ -360,12 +407,16 @@ public class HowsController {
 		System.err.println("bank : " + bankname);
 		System.err.println("loan : " + loanname);
 		if (bankname.equals("신한")) {
+			System.out.println(shinhanRepo.findById(loanname));
 			return (T) shinhanRepo.findById(loanname);
 		} else if (bankname.equals("국민")) {
+			System.out.println(kookminRepo.findById(loanname));
 			return (T) kookminRepo.findById(loanname);
 		} else if (bankname.equals("하나")) {
+			System.out.println(hanaRepo.findById(loanname));
 			return (T) hanaRepo.findById(loanname);
 		} else if (bankname.equals("우리")) {
+			System.out.println(wooriRepo.findById(loanname));
 			return (T) wooriRepo.findById(loanname);
 		} else
 			return null;
@@ -466,7 +517,7 @@ public class HowsController {
 			map.put("message", "상담 신청 내역이 있습니다, 이전 채팅방에 입장합니다.");
 			map.put("room", room.getRoomId());
 			map.put("myname", mem.getMemberid());
-			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));			
+			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));
 			return (T) map;
 		}
 	}

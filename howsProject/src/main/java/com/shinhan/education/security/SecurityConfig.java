@@ -30,7 +30,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authorizeRequests() // 요청에 대한 인가 설정을 시작
-				.antMatchers("/hows/all").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
+				.antMatchers("/hows/auth/login").permitAll() // 경로로의 요청은 모든 사용자에게 허용됩니다. 즉, 인증되지 않은 사용자도 접근할 수 있다.
 				.antMatchers("/hows/user").hasRole("USER")
 				.antMatchers("/hows/admin").hasRole("ADMIN")
 				.antMatchers("/hows/teller").hasRole("TELLER")
