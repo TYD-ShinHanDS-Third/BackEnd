@@ -34,6 +34,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/hows/user").hasRole("USER")
 				.antMatchers("/hows/admin").hasRole("ADMIN")
 				.antMatchers("/hows/teller").hasRole("TELLER")
+				.antMatchers("/hows/notice/**").permitAll()
+				
 				.antMatchers("/**").permitAll()
 				.anyRequest().authenticated() // 위에서 설정한 경로 이외의 모든 요청은 인증된 사용자에게만 허용됩니다. 인증되지 않은 사용자는 이러한 요청에 접근할 수 없습니다.		
 //				.and()

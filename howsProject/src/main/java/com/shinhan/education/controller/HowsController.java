@@ -739,6 +739,7 @@ public class HowsController {
 
 	@GetMapping("/bank/form") // 대출승인대기중인 목록을 가져온다
 	public List<Map<String, Object>> getMemberDocs2(HttpServletRequest request) {
+		System.out.println("bank/form");
 		// Integer memloanid = Integer.parseInt(request.getParameter("memloanid"));
 		Integer page = Integer.parseInt(request.getParameter("page"));
 		Integer size = Integer.parseInt(request.getParameter("size"));
@@ -760,7 +761,7 @@ public class HowsController {
 
 			objList.add(obj);
 		});
-
+		System.out.println(objList);
 		return objList;
 	}
 
