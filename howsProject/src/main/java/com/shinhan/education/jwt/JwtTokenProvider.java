@@ -38,7 +38,6 @@ public class JwtTokenProvider {
     @Autowired
     public JwtTokenProvider(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
-        //this.secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
         byte[] keybytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keybytes);
     }
@@ -68,12 +67,8 @@ public class JwtTokenProvider {
                 .map(x -> new SimpleGrantedAuthority("ROLE_" + x))
               //  .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
-        System.out.println("provider 71 : " + authorities);
         return new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
-       // return null;
     }
-    
-
 
     // 주어진 JWT 토큰에서 회원 ID를 추출하여 반환
     public String getMemberId(String token) {

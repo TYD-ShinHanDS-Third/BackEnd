@@ -23,11 +23,11 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<Role> roles = Arrays.asList(member.getRoles()); // Role 값을 리스트로 변환
+
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }
-    
     @Override
     public String getPassword() {
         // 사용자의 비밀번호를 반환

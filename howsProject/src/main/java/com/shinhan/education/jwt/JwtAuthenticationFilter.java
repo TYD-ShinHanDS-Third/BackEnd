@@ -30,14 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		String token = jwtTokenProvider.resolveToken(request);
-		System.out.println("test1 : " + token);
 		if (token != null && jwtTokenProvider.validateToken(token)) {
-			System.out.println("test2 : " + token);
 			Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
-			System.out.println("authentication : " + authentication);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
-			System.out.println("설정체크 : " + SecurityContextHolder.getContextHolderStrategy().toString());
 		}
 		filterChain.doFilter(request, response);
 	}

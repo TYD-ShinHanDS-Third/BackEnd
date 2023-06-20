@@ -47,7 +47,8 @@ public class Members {
 	private Role roles; // 사용자, 관리자, 은행원
 	@Enumerated(EnumType.STRING)
 	@Column(name = "memberlevel")
-	private MemberLevel memberLevel; // 기본정보 및 추가정보 입력여부에 따라 등급부여(SILVERUSER -> 기본정보만 입력한 유저, GOLDUSER -> 추가정보까지 입력한 유저)
+	private MemberLevel memberLevel; // 기본정보 및 추가정보 입력여부에 따라 등급부여(SILVERUSER -> 기본정보만 입력한 유저, GOLDUSER -> 추가정보까지 입력한
+										// 유저)
 	private String accBank; // 계좌은행
 	private String accno; // 계좌
 	private String jobname; // 직장명
@@ -55,11 +56,11 @@ public class Members {
 	private Date hiredate; // 입사일
 	private Integer marry; // 결혼유무
 	private Integer haschild; // 자녀 수
-	private String email; //이메일(관리자,은행원)
-	 @CreationTimestamp
-	 @Temporal(TemporalType.TIMESTAMP)
-	 @Column(name = "join_date")
-	 private Date joindate;
+	private String email; // 이메일(관리자,은행원)
+	@CreationTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "join_date")
+	private Date joindate;
 
 	// 입력된 비밀번호와 저장된 비밀번호를 비교하여 유효성을 확인하는 메서드
 	public boolean isPswdValid(PasswordEncoder passwordEncoder, String password) {
@@ -69,26 +70,24 @@ public class Members {
 	public List<String> getRoleNames() {
 		return Arrays.asList(roles.getRoleName());
 	}
+
 	// java.sql.Date로 변환하여 저장
 	public void setBday(Date bday) {
-	
+
 		this.bday = new java.sql.Date(bday.getTime());
 	}
+
 	// java.sql.Date로 변환하여 저장
 	public void sethiredate(Date hiredate) {
-		
+
 		this.hiredate = new java.sql.Date(bday.getTime());
 	}
-	//회원의 역할을 설정함
+
+	// 회원의 역할을 설정함
 	public void setRoles(List<String> roleNames) {
-	    if (!roleNames.isEmpty()) {
-	        this.roles = Role.valueOf(roleNames.get(0));
-	    }
+		if (!roleNames.isEmpty()) {
+			this.roles = Role.valueOf(roleNames.get(0));
+		}
 	}
 
-	  public boolean isEnabled() {
-	        // Implement the logic to determine if the user account is enabled or disabled
-	        // Return true if the account is enabled, or false if it is disabled
-	        return isEnabled(); // Replace with your actual logic
-	    }
 }
