@@ -31,11 +31,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable().formLogin().disable().exceptionHandling().accessDeniedHandler(accessDeniedHandler()).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+		http.csrf().disable().formLogin().disable().exceptionHandling().accessDeniedHandler(accessDeniedHandler())
+				.and()
+				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				.and()
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.authorizeRequests().antMatchers("/**/admin/**").hasRole("ADMIN").antMatchers("/hows/auth/**")
-				.permitAll().anyRequest().authenticated();
+				.authorizeRequests()
+				.antMatchers("/hows/admin/**").hasRole("ADMIN")
+				.antMatchers("/hows/bank/**").hasRole("TELLER")
+				.antMatchers("/hows/notice/**").permitAll()
+				.antMatchers("/hows/find/**").permitAll() // 안해도 됨
+				.antMatchers("/hows/auth/**").permitAll()
+				.antMatchers("/hows/loan/**").permitAll()
+				.anyRequest().authenticated();
 
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
@@ -55,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public AccessDeniedHandler accessDeniedHandler() {
 		return (request, response, accessDeniedException) -> {
 			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			response.getWriter().write("Access Denied");
+			response.getWriter().write("/hows/noauth");
 		};
 	}
 }

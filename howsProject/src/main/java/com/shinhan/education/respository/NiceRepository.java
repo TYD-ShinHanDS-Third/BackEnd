@@ -6,7 +6,7 @@ import com.shinhan.education.entity.Nice;
 
 public interface NiceRepository extends CrudRepository<Nice, String>{
 	
-	
+	Nice findByJumin(String jumin);
 }
 
 

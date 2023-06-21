@@ -1,9 +1,15 @@
 package com.shinhan.education.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +18,14 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +34,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -342,11 +354,11 @@ public class HowsController {
 
 		String string_x = request.getParameter("x").toString();
 		String string_y = request.getParameter("y").toString();
-		
-		System.out.println(string_x + " "  + string_y);
+
+		System.out.println(string_x + " " + string_y);
 		BigDecimal x = new BigDecimal(string_x);
 		BigDecimal y = new BigDecimal(string_y);
-		
+
 		String num = "0.00500000";
 		BigDecimal x1 = x.add(new BigDecimal(num));
 		BigDecimal x2 = x.subtract(new BigDecimal(num));
@@ -424,36 +436,77 @@ public class HowsController {
 
 	// 한도조회
 	@GetMapping(value = "/loan/detail/limit")
-	public String getlimit(HttpServletRequest request) {
+	public Map<String, Object> getlimit(HttpServletRequest request) {
+		Map<String, Object> mp = new HashMap<>();
+		System.out.println("한도조회 요청들어옴");
 
-		String juminfront = request.getParameter("juminfront");
-		String juminback = request.getParameter("juminback");
-		String jumin = juminfront + juminback;
-		Nice niceinfo = niceRepo.findById(jumin).get();
-		Integer score = niceinfo.getScore();
-		String maxloan = "0원";
-		if (score >= 900) {
-			maxloan = "100,000,000원";
-		} else if (score >= 800) {
-			maxloan = "90,000,000원";
-		} else if (score >= 700) {
-			maxloan = "80,000,000원";
-		} else if (score >= 600) {
-			maxloan = "70,000,000원";
-		} else if (score >= 500) {
-			maxloan = "60,000,000원";
-		} else if (score >= 400) {
-			maxloan = "50,000,000원";
-		} else if (score >= 300) {
-			maxloan = "40,000,000원";
-		} else if (score >= 200) {
-			maxloan = "30,000,000원";
-		} else if (score >= 100) {
-			maxloan = "20,000,000원";
-		} else {
-			maxloan = "신용불량";
+		String jumin = request.getParameter("jumin");
+		jumin = jumin.replace("-", "");
+		System.out.println(jumin);
+		Nice niceinfo = niceRepo.findByJumin(jumin);
+		if (niceinfo != null) {
+			System.out.println("나이스 회워 발견");
+			Integer score = niceinfo.getScore();
+			String maxloan = "0원";
+			if (score >= 900) {
+				maxloan = "100,000,000";
+			} else if (score >= 800) {
+				maxloan = "90,000,000";
+			} else if (score >= 700) {
+				maxloan = "80,000,000";
+			} else if (score >= 600) {
+				maxloan = "70,000,000";
+			} else if (score >= 500) {
+				maxloan = "60,000,000";
+			} else if (score >= 400) {
+				maxloan = "50,000,000";
+			} else if (score >= 300) {
+				maxloan = "40,000,000";
+			} else if (score >= 200) {
+				maxloan = "30,000,000";
+			} else if (score >= 100) {
+				maxloan = "20,000,000";
+			} else {
+				maxloan = "신용불량";
+			}
+			mp.put("maxloan", maxloan);
+			mp.put("myname", niceinfo.getName());
 		}
-		return maxloan;
+		return mp;
+	}
+
+	@GetMapping("/loan/verification")
+	public String verify(HttpServletRequest request) {
+		//
+		System.out.println("본인인증 요청 들어옴");
+		String jumin = request.getParameter("jumin");
+		System.out.println("jumin : " + jumin);
+
+		jumin = jumin.replace("-", "");
+		String name = request.getParameter("name");
+		System.out.println("name : " + name);
+
+		String token = request.getHeader("token");
+		System.out.println("token : " + token);
+
+		String memberid = getMemberId(token);
+
+		Members mem = memRepo.findByMemberid(memberid).get();
+
+		Nice nice = niceRepo.findByJumin(jumin);
+
+		if (nice != null) {
+			// System.out.println("a");
+			if (nice.getName().equals(name)) {
+				// System.out.println("k");
+				if (mem.getMembername().equals(name)) {
+					System.out.println("성공");
+					return "1";
+				}
+			}
+		}
+		System.out.println("실패");
+		return "0";
 	}
 
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -714,14 +767,14 @@ public class HowsController {
 
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
-		objlist.put("depositReceipt", ml.getDepositReceipt());
+	//	objlist.put("depositReceipt", ml.getDepositReceipt());
 		objlist.put("residenceRegistration", ml.getResidenceRegistration());
-		objlist.put("identificationCard", ml.getIdentificationCard());
-		objlist.put("incomeProof", ml.getIncomeProof());
+		//objlist.put("identificationCard", ml.getIdentificationCard());
+		//objlist.put("incomeProof", ml.getIncomeProof());
 		objlist.put("marriageProof", ml.getMarriageProof());
 		objlist.put("employmentProof", ml.getEmploymentProof());
-		objlist.put("businessProof", ml.getBusinessProof());
-		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+		//objlist.put("businessProof", ml.getBusinessProof());
+		//objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
 
 		return objlist;
 		// bankname이 전달되나??
@@ -761,7 +814,7 @@ public class HowsController {
 
 			objList.add(obj);
 		});
-		System.out.println(objList);
+		System.err.println(objList);
 		return objList;
 	}
 
@@ -779,14 +832,14 @@ public class HowsController {
 
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
-		objlist.put("depositReceipt", ml.getDepositReceipt());
+	//	objlist.put("depositReceipt", ml.getDepositReceipt());
 		objlist.put("residenceRegistration", ml.getResidenceRegistration());
-		objlist.put("identificationCard", ml.getIdentificationCard());
-		objlist.put("incomeProof", ml.getIncomeProof());
+	//	objlist.put("identificationCard", ml.getIdentificationCard());
+	//	objlist.put("incomeProof", ml.getIncomeProof());
 		objlist.put("marriageProof", ml.getMarriageProof());
 		objlist.put("employmentProof", ml.getEmploymentProof());
-		objlist.put("businessProof", ml.getBusinessProof());
-		objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+	//	objlist.put("businessProof", ml.getBusinessProof());
+	//	objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
 
 		return objlist;
 	}
@@ -812,16 +865,104 @@ public class HowsController {
 		return "url수정완료";
 	}
 
-	// 은행원이 승인 거부
-	@PutMapping("bank/reject")
-	public String rejectloan(HttpServletRequest request) {
+//	// 은행원이 승인 거부
+//	@PutMapping("bank/reject")
+//	public String rejectloan(HttpServletRequest request) {
+//
+//		String loanid = request.getParameter("loanid");
+//		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
+//		ml.setLoanstate("승인거부");
+//		memloanRepo.save(ml);
+//		return "승인거부완료";
+//
+//	}
 
-		String loanid = request.getParameter("loanid");
-		MemberLoans ml = memloanRepo.findById(Integer.parseInt(loanid)).get();
-		ml.setLoanstate("승인거부");
-		memloanRepo.save(ml);
-		return "승인거부완료";
+	@GetMapping("/admin/check")
+	public String authcheck(HttpServletRequest request) {
+
+		String url = request.getParameter("url");
+
+		return url;
 
 	}
+
+	@PostMapping("/loan/detail/uploaddocs")
+	public String uploadDocs(@RequestParam("files") List<MultipartFile> files, HttpServletRequest request) {
+		System.out.println("파일업로드 요청 들어옴");
+//		String memloanid = request.getParameter("loanid");
+		
+		String uploadPath1 = System.getProperty("user.dir");
+		String uploadPath2 = uploadPath1 + "\\src\\main\\resources\\allfiles\\"; // 파일 저장 경로
+		System.out.println(uploadPath2);
+		String response = "";
+		String token = request.getHeader("token");//토큰이 안온다
+		String memberid = getMemberId(token);
+		Members mem = memRepo.findByMemberid(memberid).get();
+		MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);//로직 수정하기...member가 여러 대출했을때 안됨.
+		List<String> filenames = new ArrayList<>();
+		for (MultipartFile file : files) {
+			System.out.println("반복!");
+			if (!file.isEmpty()) {
+				String originalFilename = file.getOriginalFilename();
+				System.out.println(originalFilename);
+				String uniqueFilename = generateUniqueFilename(originalFilename);
+
+				try {
+					File destFile = new File(uploadPath2 + uniqueFilename);
+					file.transferTo(destFile);
+					response += "File " + originalFilename + " uploaded successfully.\n";
+					System.out.println(response);
+					
+					filenames.add(uniqueFilename);
+					
+				} catch (IOException e) {
+					response += "Failed to upload file " + originalFilename + ".\n";
+					System.out.println(response);
+
+				}
+			}
+		}
+		//서류를 저장하고
+		ml.setResidenceRegistration(filenames.get(0));
+		ml.setLeaseContract(filenames.get(1));
+		ml.setPropertyRegistration(filenames.get(2));
+		ml.setMarriageProof(filenames.get(3));
+		ml.setEmploymentProof(filenames.get(4));
+		
+		//데이터 베이스에 서류 이름을 저장한다
+		memloanRepo.save(ml);
+		
+		
+		
+//성공시 데이터베이스에 저장하기
+		return response;
+	}
+
+	private String generateUniqueFilename(String originalFilename) {
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+		String extension = extractFileExtension(originalFilename);
+
+		return timestamp + "_" + getRandomString(8) + "." + extension;
+	}
+
+	private String extractFileExtension(String filename) {
+		int dotIndex = filename.lastIndexOf(".");
+		if (dotIndex > 0 && dotIndex < filename.length() - 1) {
+			return filename.substring(dotIndex + 1);
+		}
+		return "";
+	}
+
+	private String getRandomString(int length) {
+		String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < length; i++) {
+			int randomIndex = (int) (Math.random() * characters.length());
+			sb.append(characters.charAt(randomIndex));
+		}
+		return sb.toString();
+	}
+	
+	
 
 }

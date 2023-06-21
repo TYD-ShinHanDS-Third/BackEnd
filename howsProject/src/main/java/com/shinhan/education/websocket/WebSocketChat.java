@@ -94,6 +94,8 @@ public class WebSocketChat {
 
 	// 클라이언트와 서버Socket이 연결된 상태에서, 메세지가 전달되면 해당 메서드가 실행되어 상수인 clients에 있는 모든
 	// session에게 메세지를 전달합니다.
+	
+	
 	@OnMessage // 메세지 수신 시
 	public void onMessage(String message, Session session) throws IOException {
 		System.err.println("웹소켓온메세지");
