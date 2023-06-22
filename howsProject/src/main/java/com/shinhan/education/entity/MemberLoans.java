@@ -9,6 +9,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.DynamicUpdate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +52,7 @@ public class MemberLoans {
     private String comments;
     
    //BLOB타입으로 써야 pdf등 이진파일 내용을 저장할 수 있다. 
+
     private String leaseContract; //확정 일자부 임대차(전세)계약서
     private String propertyRegistration; //임차주택 건물 등기부등본
     //private Blob depositReceipt; //임차보증금 5%이상 납입한 영수증
@@ -59,6 +63,7 @@ public class MemberLoans {
     private String employmentProof; //근로자인 경우 건강보험자격득실확인서 or 근로소득원천징수영수증:
   //  private Blob businessProof; // 자영업자인 경우 사업자등록증명원 or 소득금액증명원
     //private Blob interestLimitDocuments; //금리 및 한도우대를 받고자 하는 서류
+
     
     private Long roomnumber;
    

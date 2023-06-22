@@ -80,14 +80,13 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    // JWT 토큰을 추출하여 반환합니다. 요청의 헤더에서 "token" 값을 가져옴
+    // JWT 토큰을 추출하여 반환합니다. 요청의 헤더에서 "token" 값을 가져옴(filter에서 사용)
     public String resolveToken(HttpServletRequest request) {
         return request.getHeader("token");
     }
 
     // 주어진 JWT 토큰의 유효성을 검증합니다.
     public boolean validateToken(String token) {
-    	System.out.println("validateToken token검증 :" + token);
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
@@ -103,23 +102,23 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // 주어진 JWT 토큰의 유효성을 검증하고, 토큰이 만료되지 않았을 경우 토큰에 포함된 클레임(claims)을 반환합니다.
-    // 유효하지 않은 토큰인 경우나 토큰이 만료된 경우에는 null을 반환합니다.
-    public Claims validateTokenAndExtractClaims(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(key)
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            Date expiration = claims.getExpiration();
-            if (expiration.before(new Date())) {
-                return null; // 토큰이 만료되었을 경우 null 반환
-            }
-
-            return claims;
-        } catch (JwtException | IllegalArgumentException e) {
-            return null; // 유효하지 않은 토큰인 경우 null 반환
-        }
-    }
+//    // 주어진 JWT 토큰의 유효성을 검증하고, 토큰이 만료되지 않았을 경우 토큰에 포함된 클레임(claims)을 반환합니다.
+//    // 유효하지 않은 토큰인 경우나 토큰이 만료된 경우에는 null을 반환합니다.
+//    public Claims validateTokenAndExtractClaims(String token) {
+//        try {
+//            Claims claims = Jwts.parser()
+//                    .setSigningKey(key)
+//                    .parseClaimsJws(token)
+//                    .getBody();
+//
+//            Date expiration = claims.getExpiration();
+//            if (expiration.before(new Date())) {
+//                return null; // 토큰이 만료되었을 경우 null 반환
+//            }
+//
+//            return claims;
+//        } catch (JwtException | IllegalArgumentException e) {
+//            return null; // 유효하지 않은 토큰인 경우 null 반환
+//        }
+//    }
 }

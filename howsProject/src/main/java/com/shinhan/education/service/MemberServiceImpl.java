@@ -69,7 +69,6 @@ public class MemberServiceImpl implements MemberService {
 		member.setPswd(encryptedPassword);
 		member.setMemberLevel(memberLevel);
 		member = memberRepo.save(member);
-		System.out.println(member);
 	}
 
 	// 로그인
@@ -197,7 +196,6 @@ public class MemberServiceImpl implements MemberService {
 
 	    return true;
 	}
-        
 
 	// 클라이언트에게 회원정보목록 보냄(total 포함)
 	@Override
@@ -252,5 +250,6 @@ public class MemberServiceImpl implements MemberService {
 			throw new RuntimeException("회원을 찾을 수 없습니다.");
 		}
 	}
-
+	
+	
 }
