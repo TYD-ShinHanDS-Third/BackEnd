@@ -42,4 +42,16 @@ public class MemberLoansServiceImpl implements MemberLoansService {
         }
         return false;
     }
+    
+    @Override
+    public boolean adminupdateApprovalLoanStatus(Integer memloanid) {
+        Optional<MemberLoans> optionalMemberLoan = memberStateLoansRepository.findById(memloanid);
+        if (optionalMemberLoan.isPresent()) {
+            MemberLoans memberLoan = optionalMemberLoan.get();
+            memberLoan.setLoanstate("대출 승인대기");
+            memberStateLoansRepository.save(memberLoan);
+            return true;
+        }
+        return false;
+    }
 }
