@@ -32,8 +32,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 
-		http.csrf().disable().formLogin().disable().exceptionHandling().accessDeniedHandler(accessDeniedHandler()).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+		http.csrf().disable().formLogin().disable().exceptionHandling()
+				// .accessDeniedHandler(accessDeniedHandler())
+				.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 				.authorizeRequests()
@@ -57,7 +58,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new JwtAuthenticationFilter(jwtTokenProvider);
 	}
 
-
 //	@Bean
 //	public AccessDeniedHandler accessDeniedHandler() {
 //		return (request, response, accessDeniedException) -> {
@@ -65,7 +65,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //			response.getWriter().write("Access Denied");
 //		};
 //	}
-
-
-
 }
