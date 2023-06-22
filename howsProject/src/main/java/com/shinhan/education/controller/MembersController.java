@@ -341,4 +341,42 @@ public class MembersController {
 	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
 	    }
 	}
+	
+	
+	//관리자가 대출 승인 버튼 누르면 
+	@PutMapping("/admin/approval")
+	public ResponseEntity<String> adminloansApprovalUpdate(@RequestParam("memloanid") Integer memloanid
+	                                       ) {
+	    try {
+	        boolean stateUpdate = memberLoansService.updateApprovalLoanStatus(memloanid);
+	        if (stateUpdate) {
+	            return ResponseEntity.ok("success");
+	        } else {
+	            return ResponseEntity.badRequest().body("대출상태 업데이트에 실패하였습니다.");
+	        }
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
+	    }
+	}
+	
+	//관리자가 대출승인 거절버튼 누르면
+	@PutMapping("/admin/refusal")
+	public ResponseEntity<String> adminloansRefusalUpdate(@RequestParam("memloanid") Integer memloanid,
+	                                          @RequestParam("tel") String tel,
+	                                          @RequestParam("membername") String membername,
+	                                          @RequestParam("loanname") String loanname) {
+	    try {
+	        boolean stateUpdate = memberLoansService.updateRefusalLoanStatus(memloanid);
+	        if (stateUpdate) {
+	            // 문자 보내기
+	            Naver_Sens_Approved sensApproved = new Naver_Sens_Approved();
+	            sensApproved.send_msg(tel, membername, loanname);
+	            return ResponseEntity.ok("success");
+	        } else {
+	            return ResponseEntity.badRequest().body("대출상태 업데이트에 실패하였습니다.");
+	        }
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
+	    }
+	}
 }

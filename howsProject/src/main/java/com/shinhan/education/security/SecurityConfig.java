@@ -41,7 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.authorizeRequests()
 				//.antMatchers("/**/admin/**").hasRole("ADMIN")
 				.antMatchers("/hows/auth/**").permitAll()
-				.antMatchers("/hows/admin/userinfoshow").permitAll()
+				.antMatchers("/hows/admin/**").permitAll()
 				.antMatchers("/**").permitAll()
 				.anyRequest().authenticated(); //로그인하면 페이지 접속은 가능
 

@@ -50,7 +50,7 @@ public class Naver_Sens_Approved {
         bodyJson.put("type", "SMS");
         bodyJson.put("contentType", "COMM");
         bodyJson.put("countryCode", "82");
-        String content = "{membername}고객님\n[{loanname}]대출심사가 완료되었습니다.\n자세한 사항은 마이페이지 참고해주세요!!";
+        String content = "{membername}고객님\n[{loanname}]대출심사가 완료되었습니다.\n자세한 사항은 마이페이지 참고해주세요";
         content = content.replace("{membername}", membername)
                          .replace("{loanname}", loanname);
         bodyJson.put("content", content);
