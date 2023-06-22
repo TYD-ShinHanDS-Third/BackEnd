@@ -145,7 +145,8 @@ public class MembersController {
 			// 토큰을 클라이언트에게 전달하기 위해 HTTP 응답 헤더에 포함시킵니다.
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", token);
-			headers.add("myname", member.getMemberid());
+			//headers.add("myname", member.getMemberid());
+			headers.add("roles", memberService.getRoles(member.getMemberid()).toString());
 
 			// 토큰이 포함된 응답을 클라이언트에게 전달합니다.
 			return ResponseEntity.ok().headers(headers).build();
