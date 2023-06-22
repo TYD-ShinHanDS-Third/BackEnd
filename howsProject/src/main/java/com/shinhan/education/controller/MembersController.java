@@ -33,8 +33,10 @@ import com.shinhan.education.entity.Nice;
 import com.shinhan.education.jwt.JwtTokenProvider;
 import com.shinhan.education.mail.Approvalemail;
 import com.shinhan.education.mail.RegisterMail;
+import com.shinhan.education.naversms.Naver_Sens_Approved;
 import com.shinhan.education.respository.MemberRepository;
 import com.shinhan.education.respository.NiceRepository;
+import com.shinhan.education.service.MemberLoansService;
 import com.shinhan.education.service.MemberService;
 import com.shinhan.education.vo.MemberLevel;
 import com.shinhan.education.vo.Payload;
@@ -64,6 +66,9 @@ public class MembersController {
 
 	@Autowired
 	private NiceRepository niceRepo;
+	
+	@Autowired
+	private MemberLoansService memberLoansService;
 
 	// 토큰에서 memberid 추출
 	String getMemberId(String token) {
@@ -125,9 +130,6 @@ public class MembersController {
 	@PostMapping("/auth/login")
 	public ResponseEntity<String> login(@RequestBody MemberLoginRequest member) {
 
-		System.out.println(member.getMemberid());
-		System.out.println(member.getPswd());
-
 		try {
 			// 입력된 아이디와 비밀번호로 사용자 인증을 진행한다.
 			boolean isAuthenticated = memberService.authenticate(member.getMemberid(), member.getPswd());
@@ -135,13 +137,13 @@ public class MembersController {
 			if (!isAuthenticated) {
 				// 인증 실패한 경우
 				String errorMessage = "로그인 실패: 아이디 또는 비밀번호가 일치하지 않습니다.";
+				
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorMessage);
 			}
 
 			// 인증에 성공한 경우, 토큰을 생성한다.
 			String token = jwtTokenProvider.createToken(member.getMemberid(),
 					memberService.getRoles(member.getMemberid()));
-			System.out.println("login ... token: " + token);
 			// 토큰을 클라이언트에게 전달하기 위해 HTTP 응답 헤더에 포함시킵니다.
 			HttpHeaders headers = new HttpHeaders();
 			headers.add("Authorization", token);
@@ -152,6 +154,7 @@ public class MembersController {
 
 		} catch (Exception e) {
 			String errorMessage = "로그인 실패: 서버 오류";
+			
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
 		}
 	}
@@ -180,26 +183,11 @@ public class MembersController {
 		}
 	}
 
-	// 회원정보 수정 //토큰
-	@PutMapping("/my/myedit")
-	public ResponseEntity<String> updateMember(HttpServletRequest request,
-			@RequestBody MemberUpdateRequest updaterequest) {
-		try {
-			boolean isUpdated = memberService.update(request, updaterequest);
-			if (isUpdated) {
-				return ResponseEntity.ok("success");
-			} else {
-				return ResponseEntity.badRequest().body("회원 정보 업데이트에 실패했습니다.");
-			}
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 수정 중 오류가 발생했습니다.");
-		}
-	}
-
+	//HttpServletRequest request는 클라이언트로부터의 요청을 받고 그 정보를 활용한다.
+	//@RequestBody MemberUpdateRequest updaterequest는 클라이언트가 요청의 본문에 담은 데이터를 객체로 변환한다.
 	// 아이디 중복체크
 	@GetMapping("/auth/checkDuplicateId")
 	public ResponseEntity<String> checkDuplicateId(@RequestParam("memberid") String memberid) {
-		System.out.println("ff");
 		// 데이터베이스에서 아이디 조회
 		Optional<Members> existingMember = memberRepo.findByMemberid(memberid);
 
@@ -263,7 +251,6 @@ public class MembersController {
 	@PostMapping("/email")
 	String mailConfirm(@RequestParam("email") String email) throws Exception {
 		String code = registermail.sendSimpleMessage(email);
-		System.out.println("인증코드 : " + code);
 		return code;
 	}
 
@@ -295,5 +282,63 @@ public class MembersController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("추가 정보 조회 중 오류가 발생했습니다.");
 		}
 	}
-
+	
+	
+	@PutMapping("/my/myedit")
+	public ResponseEntity<String> updateMember(HttpServletRequest request,
+			@RequestBody MemberUpdateRequest updaterequest) {
+		try {
+			boolean isUpdated = memberService.update(request, updaterequest);
+			if (isUpdated) {
+				return ResponseEntity.ok("success");
+			} else {
+				return ResponseEntity.badRequest().body("회원 정보 업데이트에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("회원 정보 수정 중 오류가 발생했습니다.");
+		}
+	}
+	
+	//은행원이 대출 승인 버튼 누르면 
+	@PutMapping("/bank/approval")
+	public ResponseEntity<String> loansApprovalUpdate(@RequestParam("memloanid") Integer memloanid,
+	                                          @RequestParam("tel") String tel,
+	                                          @RequestParam("membername") String membername,
+	                                          @RequestParam("loanname") String loanname) {
+	    try {
+	        boolean stateUpdate = memberLoansService.updateApprovalLoanStatus(memloanid);
+	        if (stateUpdate) {
+	            // 문자 보내기
+	            Naver_Sens_Approved sensApproved = new Naver_Sens_Approved();
+	            sensApproved.send_msg(tel, membername, loanname);
+	            return ResponseEntity.ok("success");
+	        } else {
+	            return ResponseEntity.badRequest().body("대출상태 업데이트에 실패하였습니다.");
+	        }
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
+	    }
+	}
+	
+	
+	//은행원이 대출승인 거절버튼 누르면
+	@PutMapping("/bank/refusal")
+	public ResponseEntity<String> loansRefusalUpdate(@RequestParam("memloanid") Integer memloanid,
+	                                          @RequestParam("tel") String tel,
+	                                          @RequestParam("membername") String membername,
+	                                          @RequestParam("loanname") String loanname) {
+	    try {
+	        boolean stateUpdate = memberLoansService.updateRefusalLoanStatus(memloanid);
+	        if (stateUpdate) {
+	            // 문자 보내기
+	            Naver_Sens_Approved sensApproved = new Naver_Sens_Approved();
+	            sensApproved.send_msg(tel, membername, loanname);
+	            return ResponseEntity.ok("success");
+	        } else {
+	            return ResponseEntity.badRequest().body("대출상태 업데이트에 실패하였습니다.");
+	        }
+	    } catch (Exception e) {
+	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
+	    }
+	}
 }

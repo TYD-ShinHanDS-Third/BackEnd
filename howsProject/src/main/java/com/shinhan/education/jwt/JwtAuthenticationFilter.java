@@ -29,8 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String token = jwtTokenProvider.resolveToken(request);
-		if (token != null && jwtTokenProvider.validateToken(token)) {
+		String token = jwtTokenProvider.resolveToken(request); //토큰에서 memberid값을 추출함
+		if (token != null && jwtTokenProvider.validateToken(token)) //토큰의 유효성 검사
+		{
 			Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);

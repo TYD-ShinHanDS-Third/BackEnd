@@ -31,11 +31,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable().formLogin().disable().exceptionHandling().accessDeniedHandler(accessDeniedHandler()).and()
+		http.csrf().disable()
+		.formLogin().disable()
+		.exceptionHandling()
+		//.accessDeniedHandler(accessDeniedHandler())
+		.and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.authorizeRequests().antMatchers("/**/admin/**").hasRole("ADMIN").antMatchers("/hows/auth/**")
-				.permitAll().anyRequest().authenticated();
+				.authorizeRequests()
+				//.antMatchers("/**/admin/**").hasRole("ADMIN")
+				.antMatchers("/hows/auth/**").permitAll()
+				.antMatchers("/hows/admin/userinfoshow").permitAll()
+				.antMatchers("/**").permitAll()
+				.anyRequest().authenticated(); //로그인하면 페이지 접속은 가능
 
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
@@ -51,11 +59,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new JwtAuthenticationFilter(jwtTokenProvider);
 	}
 
-	@Bean
-	public AccessDeniedHandler accessDeniedHandler() {
-		return (request, response, accessDeniedException) -> {
-			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			response.getWriter().write("Access Denied");
-		};
-	}
+//	@Bean
+//	public AccessDeniedHandler accessDeniedHandler() {
+//		return (request, response, accessDeniedException) -> {
+//			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+//			response.getWriter().write("Access Denied");
+//		};
+//	}
 }
