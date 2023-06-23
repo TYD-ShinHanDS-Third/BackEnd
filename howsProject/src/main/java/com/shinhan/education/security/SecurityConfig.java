@@ -41,7 +41,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 				.antMatchers("/hows/admin/**").hasRole("ADMIN").antMatchers("/hows/bank/**").hasRole("TELLER")
 				.antMatchers("/hows/notice/**").permitAll().antMatchers("/hows/find/**").permitAll() // 안해도 됨
-				.antMatchers("/hows/auth/**").permitAll().antMatchers("/hows/loan/**").permitAll().anyRequest()
+				.antMatchers("/hows/auth/**").permitAll().antMatchers("/hows/loan/**").permitAll()
+				.antMatchers("/socket/chatt/**").permitAll()
+				.anyRequest()
 				.authenticated();
 
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
