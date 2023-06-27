@@ -956,17 +956,17 @@ public class HowsController {
 	@GetMapping("/loan/detail/getdocs")
 	public Map<String, Object> getDocs(HttpServletRequest request) {
 		Map<String, Object> doclist = new HashMap<>();
-
+		System.out.println("getDocs요청");
 		String strloanid = request.getParameter("loanid");
 		Integer loanid = Integer.parseInt(strloanid);
 		MemberLoans ml = memloanRepo.findById(loanid).get();
-
-		doclist.put("ResidenceRegistration", ml.getResidenceRegistration());
-		doclist.put("LeaseContract", ml.getLeaseContract());
-		doclist.put("PropertyRegistration", ml.getPropertyRegistration());
-		doclist.put("MarriageProof", ml.getMarriageProof());
-		doclist.put("EmploymentProof", ml.getEmploymentProof());
-
+		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
+		doclist.put("ResidenceRegistration", url + ml.getResidenceRegistration());
+		doclist.put("LeaseContract", url + ml.getLeaseContract());
+		doclist.put("PropertyRegistration", url + ml.getPropertyRegistration());
+		doclist.put("MarriageProof", url + ml.getMarriageProof());
+		doclist.put("EmploymentProof", url + ml.getEmploymentProof());
+		System.out.println(doclist);
 		return doclist;
 	}
 
@@ -979,7 +979,7 @@ public class HowsController {
 		String uploadPath2 = uploadPath1 + "\\src\\main\\resources\\allfiles\\"; // 파일 저장 경로
 		System.out.println(uploadPath2);
 		String response = "";
-		String token = request.getHeader("token");// 토큰이 안온다
+		String token = request.getHeader("token");// 토큰
 		String memberid = getMemberId(token);
 		Members mem = memRepo.findByMemberid(memberid).get();
 		MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);// 로직 수정하기...member가 여러 대출했을때 안됨.
@@ -1003,7 +1003,7 @@ public class HowsController {
 					url = defaultUrl + "/" + uniqueFilename;
 					// destFile.dekte
 					filenames.add(uniqueFilename);
-	
+
 					result = "success!!";
 
 				} catch (IOException e) {
@@ -1026,6 +1026,87 @@ public class HowsController {
 		// 데이터 베이스에 서류 이름을 저장한다
 		memloanRepo.save(ml);
 //성공시 데이터베이스에 저장하기
+		return result;
+	}
+
+	//재직증명서 불러오기
+	@GetMapping("/loan/detail/getworkdocs")
+	public Map<String, Object> getWorkDocs(HttpServletRequest request) {
+		Map<String, Object> doclist = new HashMap<>();
+		System.out.println("getDocs요청");
+		String token = request.getHeader("token");
+		String memberid = getMemberId(token);
+
+		Members mem = memRepo.findById(memberid).get();
+		
+		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
+
+		doclist.put("workdocs", url + mem.getWorkDoc());
+		
+		System.out.println(doclist);
+		return doclist;
+	}
+	
+	
+	
+	
+	
+	
+	// 재직증명서 업로드
+	@PostMapping("/loan/detail/workdocs/{memberid}")
+	public String uploadWorkDocs(@RequestParam("file") MultipartFile files,
+			HttpServletRequest request , @PathVariable String memberid /* , @RequestBody String requestBody */) {
+		System.out.println("재직증명서업로드 요청 들어옴");
+//		String memloanid = request.getParameter("loanid");
+//대출심사대기 로 바뀌기
+		String uploadPath1 = System.getProperty("user.dir");
+		String uploadPath2 = uploadPath1 + "\\src\\main\\resources\\allfiles\\"; // 파일 저장 경로
+		System.out.println(uploadPath2);
+		String response = "";
+		//String token = request.getHeader("token");// 토큰
+	//	String memberid = getMemberId(token);
+		
+		//MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);// 로직 수정하기...member가 여러 대출했을때 안됨.
+		String url = null;
+		String result = "fail";
+//		
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		JsonNode jsonNode = null;
+//		try {
+//			jsonNode = objectMapper.readTree(requestBody);
+//		} catch (JsonMappingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (JsonProcessingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		String memberid = jsonNode.get("memberid").asText();
+//		String memberid = request.getHeader("memberid");
+		Members mem = memRepo.findByMemberid(memberid).get();
+		String originalFilename = files.getOriginalFilename();
+		System.out.println(originalFilename);
+		String uniqueFilename = generateUniqueFilename(originalFilename);
+		System.out.println("unique file name 생성");
+		try {
+			File destFile = new File(uploadPath2 + uniqueFilename);
+			files.transferTo(destFile);
+			response += "File " + originalFilename + " uploaded successfully.\n";
+			System.out.println(response);
+
+			uploadOnS3(uniqueFilename, destFile);
+			System.out.println("업로드 성공");
+			url = defaultUrl + "/" + uniqueFilename;
+			// destFile.dekte
+			mem.setWorkDoc(uniqueFilename);
+			result = "success";
+		} catch (IOException e) {
+			response += "Failed to upload file " + originalFilename + ".\n";
+			System.out.println(response);
+			result = "fail";
+		}
+		// 서류를 저장하고
+		memRepo.save(mem);
 		return result;
 	}
 
