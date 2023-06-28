@@ -235,6 +235,9 @@ public class MembersController {
 	public ResponseEntity<String> updateMemberRolesAndSendEmail(@RequestParam String memberid, @RequestParam List<String> roles, @RequestParam("email") String email) {
 	    try {
 	        // 회원 업데이트
+	    	Members mem = memberRepo.findByMemberid(memberid).get();
+	    	roles.clear();
+	    	roles.add(mem.getWantrole());
 	        memberService.updateMemberRoles(memberid, roles);
 
 	        // 이메일 발송

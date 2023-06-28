@@ -64,8 +64,11 @@ public class MemberServiceImpl implements MemberService {
 	public void signUp(MemberSignUpRequest requestDto, MemberLevel memberLevel) throws Exception {
 		// 비밀번호 암호화
 		String encryptedPassword = passwordEncoder.encode(requestDto.getPswd());
-
+		List<String> roleNames = new ArrayList<>();
+		roleNames.add("USER");
 		Members member = requestDto.toEntity();
+		member.setWantrole(member.getRoles().toString());
+		member.setRoles(roleNames);
 		member.setPswd(encryptedPassword);
 		member.setMemberLevel(memberLevel);
 		member = memberRepo.save(member);
@@ -200,6 +203,8 @@ public class MemberServiceImpl implements MemberService {
 	// 클라이언트에게 회원정보목록 보냄(total 포함)
 	@Override
 	public RequestVO<List<MemberDTO>> getMembers(int page, int size) {
+		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
+
 	    // 페이지 요청 객체 생성
 	    PageRequest pageable = PageRequest.of(page, size, Sort.by("joindate").descending());
 	    // 페이지 단위로 회원 목록 조회
@@ -220,7 +225,8 @@ public class MemberServiceImpl implements MemberService {
 	        filteredMember.setBday(member.getBday());
 	        filteredMember.setRoles(member.getRoles());
 	        filteredMember.setEmail(member.getEmail());
-//	        filteredMember.setEmploydocument(employdocument);
+	        filteredMember.setWantRole(member.getWantrole());
+	        filteredMember.setEmploydocument(url + member.getWorkDoc());
 	        filteredMembers.add(filteredMember);
 	    }
 

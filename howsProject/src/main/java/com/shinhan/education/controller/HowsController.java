@@ -721,8 +721,8 @@ public class HowsController {
 		List<MemberLoans> mllist = memloanRepo.findByMemberid(mem);
 		System.out.println("대출목록 : ");
 
-		List<Map<String, Object>> listA = new ArrayList();
-		List<Map<String, Object>> listB = new ArrayList();
+		List<Map<String, Object>> listA = new ArrayList<>();
+		List<Map<String, Object>> listB = new ArrayList<>();
 
 		mllist.forEach((x) -> {
 
@@ -736,6 +736,7 @@ public class HowsController {
 
 			mapB.put("loanname", x.getLoanname().getLoanname());
 			mapB.put("bankname", x.getLoanname().getBankname());
+			mapB.put("loanstate", x.getLoanstate());
 			mapB.put("room", x.getRoomnumber());
 
 			listA.add(mapA);
@@ -1034,8 +1035,8 @@ public class HowsController {
 	public Map<String, Object> getWorkDocs(HttpServletRequest request) {
 		Map<String, Object> doclist = new HashMap<>();
 		System.out.println("getDocs요청");
-		String token = request.getHeader("token");
-		String memberid = getMemberId(token);
+//		String token = request.getHeader("token");
+		String memberid = request.getParameter("memberid");
 
 		Members mem = memRepo.findById(memberid).get();
 		
@@ -1046,10 +1047,6 @@ public class HowsController {
 		System.out.println(doclist);
 		return doclist;
 	}
-	
-	
-	
-	
 	
 	
 	// 재직증명서 업로드
