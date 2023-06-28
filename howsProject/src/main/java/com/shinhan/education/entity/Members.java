@@ -61,7 +61,10 @@ public class Members {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "join_date")
 	private Date joindate;
-
+	
+	private String workDoc;
+	private String wantrole;
+	
 	// 입력된 비밀번호와 저장된 비밀번호를 비교하여 유효성을 확인하는 메서드
 	public boolean isPswdValid(PasswordEncoder passwordEncoder, String password) {
 		return passwordEncoder.matches(password, this.pswd);
@@ -89,5 +92,7 @@ public class Members {
 			this.roles = Role.valueOf(roleNames.get(0));
 		}
 	}
+	
+	
 
 }

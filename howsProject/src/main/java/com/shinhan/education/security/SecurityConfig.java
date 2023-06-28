@@ -39,14 +39,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 				.authorizeRequests()
 
-				//.antMatchers("/hows/admin/**").hasRole("ADMIN")
-				.antMatchers("/hows/admin/**").permitAll()
-				//.antMatchers("/hows/bank/**").hasRole("TELLER")
-				.antMatchers("/hows/bank/**").permitAll()
-				.antMatchers("/hows/notice/**").permitAll()
-				.antMatchers("/hows/find/**").permitAll() // 안해도 됨
-				.antMatchers("/hows/auth/**").permitAll()
-				.antMatchers("/hows/loan/**").permitAll().anyRequest()
+
+				.antMatchers("/hows/admin/**").hasRole("ADMIN").antMatchers("/hows/bank/**").hasRole("TELLER")
+				.antMatchers("/hows/notice/**").permitAll().antMatchers("/hows/find/**").permitAll() // 안해도 됨
+				.antMatchers("/hows/auth/**").permitAll().antMatchers("/hows/loan/**").permitAll()
+				.antMatchers("/socket/chatt/**").permitAll()
+				.anyRequest()
+
 				.authenticated();
 
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

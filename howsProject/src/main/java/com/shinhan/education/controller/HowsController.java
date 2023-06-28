@@ -12,10 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,12 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -67,10 +75,12 @@ import com.shinhan.education.vo.Payload;
 import com.shinhan.education.vo.RequestVO;
 import com.shinhan.education.vo.XYResult;
 
+import lombok.extern.slf4j.Slf4j;
+
 @CrossOrigin // (origins = "3000")
 @RestController
 @RequestMapping("/hows")
-
+@Slf4j
 /* 이자율계산기 : https://wildeveloperetrain.tistory.com/118 */
 
 public class HowsController {
@@ -114,6 +124,35 @@ public class HowsController {
 
 	@Autowired
 	HouseRepository houseRepo;
+
+	// 버킷 이름 동적 할당
+	@Value("${cloud.aws.s3.bucket}")
+	private String bucket;
+
+	// 버킷 주소 동적 할당
+	@Value("${cloud.aws.s3.bucket.url}")
+	private String defaultUrl;
+
+	// private final AmazonS3Client amazonS3Client = new AmazonS3Client(new
+	// BasicAWSCredentials("${cloud.aws.credentials.accessKey}",
+	// "${cloud.aws.credentials.secretKey}"));
+	private final AmazonS3Client amazonS3Client;
+
+	@Autowired
+	public HowsController(AmazonS3Client amazonS3Client) {
+		this.amazonS3Client = amazonS3Client;
+	}
+
+//	public HowsController() {
+//		
+//		
+//		super();
+//		this.credentials = null;
+//		//this.credentials =
+//		//this.amazonS3Client  = 
+//		this.amazonS3Client = null;
+//		
+//	}
 
 	String getMemberId(String token) {
 		// String token =
@@ -435,38 +474,61 @@ public class HowsController {
 		System.out.println("한도조회 요청들어옴");
 
 		String jumin = request.getParameter("jumin");
-		jumin = jumin.replace("-", "");
-		System.out.println(jumin);
-		Nice niceinfo = niceRepo.findByJumin(jumin);
-		if (niceinfo != null) {
-			System.out.println("나이스 회워 발견");
-			Integer score = niceinfo.getScore();
-			String maxloan = "0원";
-			if (score >= 900) {
-				maxloan = "100,000,000";
-			} else if (score >= 800) {
-				maxloan = "90,000,000";
-			} else if (score >= 700) {
-				maxloan = "80,000,000";
-			} else if (score >= 600) {
-				maxloan = "70,000,000";
-			} else if (score >= 500) {
-				maxloan = "60,000,000";
-			} else if (score >= 400) {
-				maxloan = "50,000,000";
-			} else if (score >= 300) {
-				maxloan = "40,000,000";
-			} else if (score >= 200) {
-				maxloan = "30,000,000";
-			} else if (score >= 100) {
-				maxloan = "20,000,000";
-			} else {
-				maxloan = "신용불량";
+		String price = request.getParameter("price");
+		System.out.println(price);
+		if (jumin != null && price != null) {
+			Integer iprice = Integer.parseInt(price);
+			jumin = jumin.replace("-", "");
+			System.out.println(jumin);
+			Nice niceinfo = niceRepo.findByJumin(jumin);
+			if (niceinfo != null) {
+				System.out.println("나이스 회워 발견");
+				Integer score = niceinfo.getScore();
+				String maxloan = "0원";
+				if (score >= 900) {
+					// price활용해서 계산하기
+					iprice = (int) Math.round(iprice * 1.0);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 800) {
+					iprice = (int) Math.round(iprice * 0.9);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 700) {
+					iprice = (int) Math.round(iprice * 0.8);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 500) {
+					iprice = (int) Math.round(iprice * 0.7);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 400) {
+					iprice = (int) Math.round(iprice * 0.6);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 300) {
+					iprice = (int) Math.round(iprice * 0.5);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 200) {
+					iprice = (int) Math.round(iprice * 0.4);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else if (score >= 100) {
+					iprice = (int) Math.round(iprice * 0.3);
+					String formattedPrice = String.format("%,d", iprice);
+					maxloan = formattedPrice;
+				} else {
+					maxloan = "신용불량";
+				}
+				mp.put("maxloan", maxloan);
+				mp.put("myname", niceinfo.getName());
 			}
-			mp.put("maxloan", maxloan);
-			mp.put("myname", niceinfo.getName());
+			return mp;
+		} else {
+			mp.put("maxloan", "한도조회ERROR");
+			return null;
 		}
-		return mp;
 	}
 
 	@GetMapping("/loan/verification")
@@ -532,6 +594,8 @@ public class HowsController {
 		String bankname = request.getParameter("bankname");
 		String loanname = request.getParameter("loanname");// 변수 이름 확인ㅌ
 		String token = request.getHeader("token");
+		String loanid = request.getParameter("loanid");
+		// System.out.println("loanid : " + loanid);
 		System.out.println("token : " + token);
 		String memberid = getMemberId(token);
 		Loans loan = loanRepo.findById(loanname).get();
@@ -539,29 +603,41 @@ public class HowsController {
 
 		// 이미 관련 톡방이 있는지 확인
 		// 없으면 새로 룸 생성
-
+		Map<String, Object> map = new HashMap<>();
 		List<MemberLoans> listml = memloanRepo.findByMemberidAndLoanname(mem, loan);
 
-		Map<String, Object> map = new HashMap<>();
-		if (listml.size() == 0) {// 방생성
-			System.out.println("1");
-			MemberLoans ml = MemberLoans.builder().memberid(mem).loanname(loan).loanstate("상담신청").build();
-			ml = memloanRepo.save(ml);
-			ml.getMemloanid();
-			ChatRoom room = ChatRoom.builder().memloanid(ml.getMemloanid()).build();// 룸생성
-			room = roomRepo.save(room);// db에 룸저장
-			ml.setRoomnumber(room.getRoomId());// 해당 memloan에다가 룸번호 저장
-			memloanRepo.save(ml);// db에 저장
-			map.put("message", "상담 신청 완료, 상담사와 채팅을 연결합니다.");
-			map.put("room", room.getRoomId());
-			map.put("myname", mem.getMemberid());
-			return (T) map;
-		} else {
-			System.out.println("2");
-			MemberLoans ml = listml.get(0);
+		// System.out.println("role : " + mem.getRoles());
+		// String memrole = mem.getRoles().toString();
+		if (!(mem.getRoles().toString().equals("ADMIN"))) {// 관리자가 아닌경우
 
-			ChatRoom room = roomRepo.findByMemloanid(ml.getMemloanid());
-			map.put("message", "상담 신청 내역이 있습니다, 이전 채팅방에 입장합니다.");
+			if (listml.size() == 0) {// 방생성...처음 대출을 한다
+				System.out.println("1");
+				MemberLoans ml = MemberLoans.builder().memberid(mem).loanname(loan).loanstate("상담신청").build();
+				ml = memloanRepo.save(ml);// 새로운 대출신청을 만들고
+				ml.getMemloanid();
+				ChatRoom room = ChatRoom.builder().memloanid(ml.getMemloanid()).build();// 룸생성
+				room = roomRepo.save(room);// db에 룸저장
+				ml.setRoomnumber(room.getRoomId());// 해당 memloan에다가 룸번호 저장
+				memloanRepo.save(ml);// db에 저장
+				map.put("message", "상담 신청 완료, 상담사와 채팅을 연결합니다.");
+				map.put("room", room.getRoomId());
+				map.put("myname", mem.getMemberid());
+				return (T) map;
+			} else {// 방이 이미 있으면 이전 대출을 재활용한다
+				System.out.println("2");
+				MemberLoans ml = listml.get(0);
+
+				ChatRoom room = roomRepo.findByMemloanid(ml.getMemloanid());
+				map.put("message", "상담 신청 내역이 있습니다, 이전 채팅방에 입장합니다.");
+				map.put("room", room.getRoomId());
+				map.put("myname", mem.getMemberid());
+				map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));
+				return (T) map;
+			}
+		} else {// 관리자인경우
+			System.err.println("3");
+			ChatRoom room = roomRepo.findByMemloanid(Integer.parseInt(loanid));
+			map.put("message", "관리자입니다, 이전 채팅방에 입장합니다.");
 			map.put("room", room.getRoomId());
 			map.put("myname", mem.getMemberid());
 			map.put("chathistory", chatinfoRepo.findByChatroomOrderByTime(room));
@@ -645,8 +721,8 @@ public class HowsController {
 		List<MemberLoans> mllist = memloanRepo.findByMemberid(mem);
 		System.out.println("대출목록 : ");
 
-		List<Map<String, Object>> listA = new ArrayList();
-		List<Map<String, Object>> listB = new ArrayList();
+		List<Map<String, Object>> listA = new ArrayList<>();
+		List<Map<String, Object>> listB = new ArrayList<>();
 
 		mllist.forEach((x) -> {
 
@@ -660,6 +736,7 @@ public class HowsController {
 
 			mapB.put("loanname", x.getLoanname().getLoanname());
 			mapB.put("bankname", x.getLoanname().getBankname());
+			mapB.put("loanstate", x.getLoanstate());
 			mapB.put("room", x.getRoomnumber());
 
 			listA.add(mapA);
@@ -761,14 +838,14 @@ public class HowsController {
 
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
-	//	objlist.put("depositReceipt", ml.getDepositReceipt());
+		// objlist.put("depositReceipt", ml.getDepositReceipt());
 		objlist.put("residenceRegistration", ml.getResidenceRegistration());
-		//objlist.put("identificationCard", ml.getIdentificationCard());
-		//objlist.put("incomeProof", ml.getIncomeProof());
+		// objlist.put("identificationCard", ml.getIdentificationCard());
+		// objlist.put("incomeProof", ml.getIncomeProof());
 		objlist.put("marriageProof", ml.getMarriageProof());
 		objlist.put("employmentProof", ml.getEmploymentProof());
-		//objlist.put("businessProof", ml.getBusinessProof());
-		//objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+		// objlist.put("businessProof", ml.getBusinessProof());
+		// objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
 
 		return objlist;
 		// bankname이 전달되나??
@@ -826,14 +903,14 @@ public class HowsController {
 
 		objlist.put("leaseContract", ml.getLeaseContract());
 		objlist.put("propertyRegistration", ml.getPropertyRegistration());
-	//	objlist.put("depositReceipt", ml.getDepositReceipt());
+		// objlist.put("depositReceipt", ml.getDepositReceipt());
 		objlist.put("residenceRegistration", ml.getResidenceRegistration());
-	//	objlist.put("identificationCard", ml.getIdentificationCard());
-	//	objlist.put("incomeProof", ml.getIncomeProof());
+		// objlist.put("identificationCard", ml.getIdentificationCard());
+		// objlist.put("incomeProof", ml.getIncomeProof());
 		objlist.put("marriageProof", ml.getMarriageProof());
 		objlist.put("employmentProof", ml.getEmploymentProof());
-	//	objlist.put("businessProof", ml.getBusinessProof());
-	//	objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
+		// objlist.put("businessProof", ml.getBusinessProof());
+		// objlist.put("interestLimitDocuments", ml.getInterestLimitDocuments());
 
 		return objlist;
 	}
@@ -873,27 +950,43 @@ public class HowsController {
 
 	@GetMapping("/admin/check")
 	public String authcheck(HttpServletRequest request) {
-
 		String url = request.getParameter("url");
-
 		return url;
+	}
 
+	@GetMapping("/loan/detail/getdocs")
+	public Map<String, Object> getDocs(HttpServletRequest request) {
+		Map<String, Object> doclist = new HashMap<>();
+		System.out.println("getDocs요청");
+		String strloanid = request.getParameter("loanid");
+		Integer loanid = Integer.parseInt(strloanid);
+		MemberLoans ml = memloanRepo.findById(loanid).get();
+		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
+		doclist.put("ResidenceRegistration", url + ml.getResidenceRegistration());
+		doclist.put("LeaseContract", url + ml.getLeaseContract());
+		doclist.put("PropertyRegistration", url + ml.getPropertyRegistration());
+		doclist.put("MarriageProof", url + ml.getMarriageProof());
+		doclist.put("EmploymentProof", url + ml.getEmploymentProof());
+		System.out.println(doclist);
+		return doclist;
 	}
 
 	@PostMapping("/loan/detail/uploaddocs")
 	public String uploadDocs(@RequestParam("files") List<MultipartFile> files, HttpServletRequest request) {
 		System.out.println("파일업로드 요청 들어옴");
 //		String memloanid = request.getParameter("loanid");
-		
+//대출심사대기 로 바뀌기
 		String uploadPath1 = System.getProperty("user.dir");
 		String uploadPath2 = uploadPath1 + "\\src\\main\\resources\\allfiles\\"; // 파일 저장 경로
 		System.out.println(uploadPath2);
 		String response = "";
-		String token = request.getHeader("token");//토큰이 안온다
+		String token = request.getHeader("token");// 토큰
 		String memberid = getMemberId(token);
 		Members mem = memRepo.findByMemberid(memberid).get();
-		MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);//로직 수정하기...member가 여러 대출했을때 안됨.
+		MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);// 로직 수정하기...member가 여러 대출했을때 안됨.
 		List<String> filenames = new ArrayList<>();
+		String url = null;
+		String result = "fail";
 		for (MultipartFile file : files) {
 			System.out.println("반복!");
 			if (!file.isEmpty()) {
@@ -906,37 +999,124 @@ public class HowsController {
 					file.transferTo(destFile);
 					response += "File " + originalFilename + " uploaded successfully.\n";
 					System.out.println(response);
-					
+
+					uploadOnS3(uniqueFilename, destFile);
+					url = defaultUrl + "/" + uniqueFilename;
+					// destFile.dekte
 					filenames.add(uniqueFilename);
-					
+
+					result = "success!!";
+
 				} catch (IOException e) {
 					response += "Failed to upload file " + originalFilename + ".\n";
 					System.out.println(response);
+					result = "fail!!";
 
 				}
 			}
 		}
-		//서류를 저장하고
+		// 서류를 저장하고
+
+		ml.setLoanstate("대출심사대기");
 		ml.setResidenceRegistration(filenames.get(0));
 		ml.setLeaseContract(filenames.get(1));
 		ml.setPropertyRegistration(filenames.get(2));
 		ml.setMarriageProof(filenames.get(3));
 		ml.setEmploymentProof(filenames.get(4));
-		
-		//데이터 베이스에 서류 이름을 저장한다
+
+		// 데이터 베이스에 서류 이름을 저장한다
 		memloanRepo.save(ml);
-		
-		
-		
 //성공시 데이터베이스에 저장하기
-		return response;
+		return result;
+	}
+
+	//재직증명서 불러오기
+	@GetMapping("/loan/detail/getworkdocs")
+	public Map<String, Object> getWorkDocs(HttpServletRequest request) {
+		Map<String, Object> doclist = new HashMap<>();
+		System.out.println("getDocs요청");
+//		String token = request.getHeader("token");
+		String memberid = request.getParameter("memberid");
+
+		Members mem = memRepo.findById(memberid).get();
+		
+		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
+
+		doclist.put("workdocs", url + mem.getWorkDoc());
+		
+		System.out.println(doclist);
+		return doclist;
+	}
+	
+	
+	// 재직증명서 업로드
+	@PostMapping("/loan/detail/workdocs/{memberid}")
+	public String uploadWorkDocs(@RequestParam("file") MultipartFile files,
+			HttpServletRequest request , @PathVariable String memberid /* , @RequestBody String requestBody */) {
+		System.out.println("재직증명서업로드 요청 들어옴");
+//		String memloanid = request.getParameter("loanid");
+//대출심사대기 로 바뀌기
+		String uploadPath1 = System.getProperty("user.dir");
+		String uploadPath2 = uploadPath1 + "\\src\\main\\resources\\allfiles\\"; // 파일 저장 경로
+		System.out.println(uploadPath2);
+		String response = "";
+		//String token = request.getHeader("token");// 토큰
+	//	String memberid = getMemberId(token);
+		
+		//MemberLoans ml = memloanRepo.findByMemberid(mem).get(0);// 로직 수정하기...member가 여러 대출했을때 안됨.
+		String url = null;
+		String result = "fail";
+//		
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		JsonNode jsonNode = null;
+//		try {
+//			jsonNode = objectMapper.readTree(requestBody);
+//		} catch (JsonMappingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (JsonProcessingException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		String memberid = jsonNode.get("memberid").asText();
+//		String memberid = request.getHeader("memberid");
+		Members mem = memRepo.findByMemberid(memberid).get();
+		String originalFilename = files.getOriginalFilename();
+		System.out.println(originalFilename);
+		String uniqueFilename = generateUniqueFilename(originalFilename);
+		System.out.println("unique file name 생성");
+		try {
+			File destFile = new File(uploadPath2 + uniqueFilename);
+			files.transferTo(destFile);
+			response += "File " + originalFilename + " uploaded successfully.\n";
+			System.out.println(response);
+
+			uploadOnS3(uniqueFilename, destFile);
+			System.out.println("업로드 성공");
+			url = defaultUrl + "/" + uniqueFilename;
+			// destFile.dekte
+			mem.setWorkDoc(uniqueFilename);
+			result = "success";
+		} catch (IOException e) {
+			response += "Failed to upload file " + originalFilename + ".\n";
+			System.out.println(response);
+			result = "fail";
+		}
+		// 서류를 저장하고
+		memRepo.save(mem);
+		return result;
 	}
 
 	private String generateUniqueFilename(String originalFilename) {
-		String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+		// String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new
+		// Date());
 		String extension = extractFileExtension(originalFilename);
+		final String saveFileName = getUuid() + "." + extension;
+		return saveFileName;
+	}
 
-		return timestamp + "_" + getRandomString(8) + "." + extension;
+	private static String getUuid() {
+		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
 
 	private String extractFileExtension(String filename) {
@@ -956,7 +1136,24 @@ public class HowsController {
 		}
 		return sb.toString();
 	}
-	
-	
 
+	private void uploadOnS3(final String findName, final File file) {
+		// AWS S3 전송 객체 생성
+
+		final TransferManager transferManager = new TransferManager(amazonS3Client);
+		// 요청 객체 생성
+		final PutObjectRequest request = new PutObjectRequest(bucket, findName, file);
+		// 업로드 시도
+		final Upload upload = transferManager.upload(request);
+
+		try {
+			upload.waitForCompletion();
+			System.out.println("업로드 완료");
+		} catch (AmazonClientException amazonClientException) {
+			log.error(amazonClientException.getMessage());
+			System.err.println(bucket);
+		} catch (InterruptedException e) {
+			log.error(e.getMessage());
+		}
+	}
 }
