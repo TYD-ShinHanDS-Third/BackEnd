@@ -12,4 +12,7 @@ public class AdminUserInfoShowDTO {
 	private Date hiredate; //입사일
 	private Integer marry; //결혼유무
 	private Integer haschild; //자녀수
+	private String membername; // 이름
+	private Date bday; // 생년월일
+	private String phone; // 휴대폰 번호
 }
