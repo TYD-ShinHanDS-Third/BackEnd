@@ -257,5 +257,14 @@ public class MemberServiceImpl implements MemberService {
 		}
 	}
 	
+	 @Override
+	  public MemberLevel getMemberLevel(String memberid) {
+	    // Retrieve the member from the repository based on the memberid
+	    Members member = memberRepo.findByMemberid(memberid)
+	        .orElseThrow(() -> new IllegalArgumentException("Invalid memberid"));
+	    // Get the member's level
+	    return member.getMemberLevel();
+	  }
+	
 	
 }

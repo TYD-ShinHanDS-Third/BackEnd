@@ -260,12 +260,7 @@ public class MembersController {
 
 	// 상담신청 후 해당 userid값으로 user의추가정보 및 선택한상품명을 클라이언트에게 제공
 	@GetMapping("/admin/userinfoshow")
-	public ResponseEntity<?> getUserInfoShow(HttpServletRequest request) {
-		String token = request.getHeader("token");
-		if (token == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 유효하지 않습니다.");
-		}
-		String memberid = getMemberId(token);
+	public ResponseEntity<?> getUserInfoShow(@RequestParam String memberid) {
 		try {
 			// memberid를 기반으로 DB에서 추가 정보 조회
 			Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
@@ -278,6 +273,9 @@ public class MembersController {
 				userInfoShowDTO.setHiredate(member.getHiredate());
 				userInfoShowDTO.setMarry(member.getMarry());
 				userInfoShowDTO.setHaschild(member.getHaschild());
+				userInfoShowDTO.setMembername(member.getMembername());
+				userInfoShowDTO.setBday(member.getBday());
+				userInfoShowDTO.setPhone(member.getPhone());
 				return ResponseEntity.ok(userInfoShowDTO);
 			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("회원이 존재하지 않습니다.");
@@ -287,7 +285,7 @@ public class MembersController {
 		}
 	}
 	
-	
+	// 회원 정보 수정
 	@PutMapping("/my/myedit")
 	public ResponseEntity<String> updateMember(HttpServletRequest request,
 			@RequestBody MemberUpdateRequest updaterequest) {
@@ -383,4 +381,39 @@ public class MembersController {
 	        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
 	    }
 	}
+	
+	//상담버튼을 누르면 memberlevel에 따라 접속여부 결정해서 보냄
+	 @GetMapping("/auth/request")
+	  public ResponseEntity<String> requestConsultation(HttpServletRequest request) {
+		String token = request.getHeader("token");
+			if (token == null) {
+				// token이 없을 경우에 대한 처리
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("토큰이 없습니다.");
+			}
+		String memberid = getMemberId(token);
+	    MemberLevel memberLevel = memberService.getMemberLevel(memberid);
+	    if (memberLevel == MemberLevel.SILVERUSER) {
+	      return ResponseEntity.ok("fail");
+	    } else if (memberLevel == MemberLevel.GOLDUSER) {
+	      return ResponseEntity.ok("success");
+	    } else {
+	      return ResponseEntity.badRequest().body("Invalid memberid");
+	    }
+	  }
+	 
+		//관리자가 대출상담 종료 버튼 누르면 
+		@PutMapping("/admin/chatend")
+		public ResponseEntity<String> adminchatend(@RequestParam("memloanid") Integer memloanid){
+		    try {
+		        boolean stateUpdate = memberLoansService.adminchatendLoanStatus(memloanid);
+		        if (stateUpdate) {
+		            return ResponseEntity.ok("success");
+		        } else {
+		            return ResponseEntity.badRequest().body("대출상태 업데이트에 실패하였습니다.");
+		        }
+		    } catch (Exception e) {
+		        return ResponseEntity.badRequest().body("에러가 발생하였습니다: " + e.getMessage());
+		    }
+		}
+	
 }

@@ -10,5 +10,8 @@ public interface MemberLoansService {
     
     // 관리자가 대출 승인시
     boolean adminupdateApprovalLoanStatus(Integer memloanid);
+    
+ // 관리자가 대출 승인시
+    boolean adminchatendLoanStatus(Integer memloanid);
 
 }

@@ -43,7 +43,7 @@ public class RegisterMail implements MailServiceInter {
 		msgg += "<br>";
 		msgg += "<p>재직증명서 확인 소요시간은 1일 ~ 2일정도 소요됩니다.<p>";
 		msgg += "<br>";
-		msgg += "<p>이용해주세서 감사합니다.<p>";
+		msgg += "<p>이용해주션서 감사합니다.<p>";
 		msgg += "<br>";
 		msgg += "<div align='center' style='border:1px solid black; font-family:verdana';>";
 		msgg += "<h3 style='color:blue;'>회원가입 인증 코드입니다.</h3>";

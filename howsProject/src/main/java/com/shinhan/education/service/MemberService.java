@@ -44,4 +44,7 @@ public interface MemberService {
 	//회원조회
 	public Optional<Members> getMemberByid(String memberId);
 	
+	//memberid로 MemberLevel 조회
+	public MemberLevel getMemberLevel(String memberid);
+	
 }
