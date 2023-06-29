@@ -19,7 +19,7 @@ public class MemberUpdateRequest {
 	private String accno; // 계좌
 	private String jobname; // 직장명
 	private Integer hasjob; // 직업유무
-	private Date hiredate; // 입사일
+	private String hiredate; // 입사일
 	private Integer marry; // 결혼유무
 	private Integer haschild; // 자녀 수
 }
