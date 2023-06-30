@@ -31,7 +31,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-
+		//token을 사용하지 않더라도 서버를 거치는 모든 요청에 토큰을 추가해야함
+		//안하면 403에러뜸
 		http.csrf().disable().formLogin().disable().exceptionHandling()
 				// .accessDeniedHandler(accessDeniedHandler())
 				.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
@@ -39,10 +40,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
 				.authorizeRequests()
 
-
+				.antMatchers("/hows/admin/userinfoshow").permitAll()
 				.antMatchers("/hows/admin/**").hasRole("ADMIN").antMatchers("/hows/bank/**").hasRole("TELLER")
 				.antMatchers("/hows/notice/**").permitAll().antMatchers("/hows/find/**").permitAll() // 안해도 됨
 				.antMatchers("/hows/auth/**").permitAll().antMatchers("/hows/loan/**").permitAll()
+				.antMatchers("/hows/email/**").permitAll()
 				.antMatchers("/socket/chatt/**").permitAll()
 				.anyRequest()
 

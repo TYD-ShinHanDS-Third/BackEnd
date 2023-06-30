@@ -29,8 +29,7 @@ import com.shinhan.education.vo.RequestVO;
 @Transactional
 @Service
 public class MemberServiceImpl implements MemberService {
-	
-	
+
 	String getMemberId(String token) {
 		System.out.println("token: " + token);
 		String[] chunks = token.split("\\.");
@@ -45,7 +44,6 @@ public class MemberServiceImpl implements MemberService {
 		System.out.println("memberid : " + memberid);
 		return memberid;
 	}
-	
 
 	private final MemberRepository memberRepo;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -140,64 +138,81 @@ public class MemberServiceImpl implements MemberService {
 		return false;
 	}
 
-	//회원정보수정
+	// 회원정보수정
 	@Override
 	@Transactional
 	public boolean update(HttpServletRequest request, MemberUpdateRequest updaterequest) throws Exception {
-		
-	    // 토큰에서 회원 ID 추출
+
+		// 토큰에서 회원 ID 추출
 		String token = request.getHeader("token");
 		String memberid = getMemberId(token);
 
-	    // 회원 ID를 기반으로 회원 정보를 조회합니다.
-	    Members member = memberRepo.findByMemberid(memberid)
-	            .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+		// 회원 ID를 기반으로 회원 정보를 조회합니다.
+		Members member = memberRepo.findByMemberid(memberid)
+				.orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-	    // 비밀번호를 암호화합니다.
-	    String encryptedPassword = member.getPswd(); // 비밀번호가 제공되지 않으면 기존 비밀번호를 유지합니다.
+		// 비밀번호를 암호화합니다.
+		String encryptedPassword = member.getPswd(); // 비밀번호가 제공되지 않으면 기존 비밀번호를 유지합니다.
+		int i = 0;
+		if (updaterequest.getPswd() != null) {
+			encryptedPassword = passwordEncoder.encode(updaterequest.getPswd());
+		}
+		// 필드를 업데이트합니다.
+		if (updaterequest.getMembername() != null) {
+			member.setMembername(updaterequest.getMembername());
+			i++;
+		}
+		if (updaterequest.getBday() != null) {
+			member.setBday(updaterequest.getBday());
+			i++;
+		}
+		if (updaterequest.getPhone() != null) {
+			member.setPhone(updaterequest.getPhone());
+			i++;
+		}
+		if (updaterequest.getAccBank() != null) {
+			member.setAccBank(updaterequest.getAccBank());
+			i++;
+		}
+		if (updaterequest.getAccno() != null) {
+			member.setAccno(updaterequest.getAccno());
+			i++;
+		}
+		if (updaterequest.getJobname() != null) {
+			member.setJobname(updaterequest.getJobname());
+			i++;
+		}
+		if (updaterequest.getHasjob() != null) {
+			member.setHasjob(updaterequest.getHasjob());
+			i++;
+		}
+		if (updaterequest.getHiredate() != null) {
+			System.out.println("1 : " + updaterequest.getHiredate());
+			member.setHiredate(updaterequest.getHiredate());
+			System.out.println("2 : " + member.getHiredate());//
+			i++;
+		}
+		if (updaterequest.getMarry() != null) {
+			member.setMarry(updaterequest.getMarry());
+			i++;
+		}
+		if (updaterequest.getHaschild() != null) {
+			member.setHaschild(updaterequest.getHaschild());
+			i++;
+		}
 
-	    if (updaterequest.getPswd() != null) {
-	        encryptedPassword = passwordEncoder.encode(updaterequest.getPswd());
-	    }
-	    // 필드를 업데이트합니다.
-	    if (updaterequest.getMembername() != null) {
-	        member.setMembername(updaterequest.getMembername());
-	    }
-	    if (updaterequest.getBday() != null) {
-	        member.setBday(updaterequest.getBday());
-	    }
-	    if (updaterequest.getPhone() != null) {
-	        member.setPhone(updaterequest.getPhone());
-	    }
-	    if (updaterequest.getAccBank() != null) {
-	        member.setAccBank(updaterequest.getAccBank());
-	    }
-	    if (updaterequest.getAccno() != null) {
-	        member.setAccno(updaterequest.getAccno());
-	    }
-	    if (updaterequest.getJobname() != null) {
-	        member.setJobname(updaterequest.getJobname());
-	    }
-	    if (updaterequest.getHasjob() != null) {
-	        member.setHasjob(updaterequest.getHasjob());
-	    }
-	    if (updaterequest.getHiredate() != null) {
-	        member.sethiredate(updaterequest.getHiredate());; 
-	    }
-	    if (updaterequest.getMarry() != null) {
-	        member.setMarry(updaterequest.getMarry());
-	    }
-	    if (updaterequest.getHaschild() != null) {
-	        member.setHaschild(updaterequest.getHaschild());
-	    }
 
-	    // 업데이트된 비밀번호를 설정합니다.
-	    member.setPswd(encryptedPassword);
+		// 업데이트된 비밀번호를 설정합니다.
+		member.setPswd(encryptedPassword);
+		if (i == 10) {
+			member.setMemberLevel(MemberLevel.GOLDUSER);
+		}
+		else {member.setMemberLevel(MemberLevel.SILVERUSER);}
+		// 업데이트된 회원 정보를 저장합니다.
+		memberRepo.save(member);
 
-	    // 업데이트된 회원 정보를 저장합니다.
-	    memberRepo.save(member);
 
-	    return true;
+		return true;
 	}
 
 	// 클라이언트에게 회원정보목록 보냄(total 포함)
@@ -205,36 +220,36 @@ public class MemberServiceImpl implements MemberService {
 	public RequestVO<List<MemberDTO>> getMembers(int page, int size) {
 		String url = "https://s3.ap-southeast-2.amazonaws.com/shinhandshowsbucket/";
 
-	    // 페이지 요청 객체 생성
-	    PageRequest pageable = PageRequest.of(page, size, Sort.by("joindate").descending());
-	    // 페이지 단위로 회원 목록 조회
-	    Page<Members> membersPage = memberRepo.findAll(pageable);
-	    // 전체 회원 수
-	    Long total = membersPage.getTotalElements();
-	    // 현재 페이지의 회원 목록
-	    List<Members> members = membersPage.getContent();
+		// 페이지 요청 객체 생성
+		PageRequest pageable = PageRequest.of(page, size, Sort.by("joindate").descending());
+		// 페이지 단위로 회원 목록 조회
+		Page<Members> membersPage = memberRepo.findAll(pageable);
+		// 전체 회원 수
+		Long total = membersPage.getTotalElements();
+		// 현재 페이지의 회원 목록
+		List<Members> members = membersPage.getContent();
 
-	    // 가공된 회원 목록을 담을 리스트 생성
-	    List<MemberDTO> filteredMembers = new ArrayList<>();
+		// 가공된 회원 목록을 담을 리스트 생성
+		List<MemberDTO> filteredMembers = new ArrayList<>();
 
-	    // 각 회원 정보를 필요한 필드로 변환하여 filteredMembers에 추가
-	    for (Members member : members) {
-	        MemberDTO filteredMember = new MemberDTO();
-	        filteredMember.setMemberid(member.getMemberid());
-	        filteredMember.setMembername(member.getMembername());
-	        filteredMember.setBday(member.getBday());
-	        filteredMember.setRoles(member.getRoles());
-	        filteredMember.setEmail(member.getEmail());
-	        filteredMember.setWantRole(member.getWantrole());
-	        filteredMember.setEmploydocument(url + member.getWorkDoc());
-	        filteredMembers.add(filteredMember);
-	    }
+		// 각 회원 정보를 필요한 필드로 변환하여 filteredMembers에 추가
+		for (Members member : members) {
+			MemberDTO filteredMember = new MemberDTO();
+			filteredMember.setMemberid(member.getMemberid());
+			filteredMember.setMembername(member.getMembername());
+			filteredMember.setBday(member.getBday());
+			filteredMember.setRoles(member.getRoles());
+			filteredMember.setEmail(member.getEmail());
+			filteredMember.setWantRole(member.getWantrole());
+			filteredMember.setEmploydocument(url + member.getWorkDoc());
+			filteredMembers.add(filteredMember);
+		}
 
-	    // 결과를 담을 RequestVO 객체 생성
-	    RequestVO<List<MemberDTO>> r = new RequestVO<>();
-	    r.setObj(filteredMembers);
-	    r.setTotal(Integer.parseInt(total.toString()));
-	    return r;
+		// 결과를 담을 RequestVO 객체 생성
+		RequestVO<List<MemberDTO>> r = new RequestVO<>();
+		r.setObj(filteredMembers);
+		r.setTotal(Integer.parseInt(total.toString()));
+		return r;
 	}
 
 	// 회원아이디 조회
@@ -256,15 +271,14 @@ public class MemberServiceImpl implements MemberService {
 			throw new RuntimeException("회원을 찾을 수 없습니다.");
 		}
 	}
-	
-	 @Override
-	  public MemberLevel getMemberLevel(String memberid) {
-	    // Retrieve the member from the repository based on the memberid
-	    Members member = memberRepo.findByMemberid(memberid)
-	        .orElseThrow(() -> new IllegalArgumentException("Invalid memberid"));
-	    // Get the member's level
-	    return member.getMemberLevel();
-	  }
-	
-	
+
+	@Override
+	public MemberLevel getMemberLevel(String memberid) {
+		// Retrieve the member from the repository based on the memberid
+		Members member = memberRepo.findByMemberid(memberid)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid memberid"));
+		// Get the member's level
+		return member.getMemberLevel();
+	}
+
 }

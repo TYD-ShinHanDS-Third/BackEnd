@@ -53,7 +53,7 @@ public class Members {
 	private String accno; // 계좌
 	private String jobname; // 직장명
 	private Integer hasjob; // 직업유무
-	private Date hiredate; // 입사일
+	private String hiredate; // 입사일
 	private Integer marry; // 결혼유무
 	private Integer haschild; // 자녀 수
 	private String email; // 이메일(관리자,은행원)
@@ -80,11 +80,13 @@ public class Members {
 		this.bday = new java.sql.Date(bday.getTime());
 	}
 
-	// java.sql.Date로 변환하여 저장
-	public void sethiredate(Date hiredate) {
 
-		this.hiredate = new java.sql.Date(hiredate.getTime());
-	}
+//	// java.sql.Date로 변환하여 저장
+//	public void sethiredate(Date hiredate) {
+//		
+//		this.hiredate = new java.sql.Date(hiredate.getTime());
+//	}
+
 
 	// 회원의 역할을 설정함
 	public void setRoles(List<String> roleNames) {

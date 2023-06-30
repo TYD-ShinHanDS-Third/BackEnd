@@ -204,6 +204,7 @@ public class MembersController {
 	// 토큰에서 회원id 추출 후 해당 회원id값으로 회원정보 제공(Mypage)
 	@GetMapping("/auth/mypage")
 	public ResponseEntity<?> getMemberForEdit(HttpServletRequest request) {
+		System.err.println("마이페이지 정보 ");
 		String token = request.getHeader("token");
 		if (token == null) {
 			// token이 없을 경우에 대한 처리
@@ -214,6 +215,8 @@ public class MembersController {
 			Optional<Members> memberOptional = memberRepo.findByMemberid(memberid);
 			if (memberOptional.isPresent()) {
 				Members member = memberOptional.get();
+				System.out.println("OK");
+				System.out.println(member);
 				return ResponseEntity.ok(member); // 회원 정보를 반환합니다.
 			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("회원이 존재하지 않습니다.");
@@ -289,6 +292,7 @@ public class MembersController {
 	@PutMapping("/my/myedit")
 	public ResponseEntity<String> updateMember(HttpServletRequest request,
 			@RequestBody MemberUpdateRequest updaterequest) {
+		System.out.println("member controller update member ; "+ updaterequest);
 		try {
 			boolean isUpdated = memberService.update(request, updaterequest);
 			if (isUpdated) {

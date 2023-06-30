@@ -31,7 +31,7 @@ public class MemberSignUpRequest {
 	private String accBank; // 계좌은행
 	private String accno; // 계좌
 	private Integer hasjob; // 직업유무
-	private Date hiredate; // 입사일
+	private String hiredate; // 입사일
 	private Integer marry; // 결혼유무
 	private Integer haschild; // 자녀 수
 	private String jobname; // 직장명
@@ -49,7 +49,7 @@ public class MemberSignUpRequest {
 	}
 
 	public MemberSignUpRequest(String memberid, String membername, String pswd, String checkedpswd, Date bday,
-			String phone, Role roles, String accBank, String accno, Integer hasjob, Date hiredate, Integer marry,
+			String phone, Role roles, String accBank, String accno, Integer hasjob, String hiredate, Integer marry,
 			Integer haschild, String jobname, MemberLevel memberLevel, String email, Date joindate) {
 		this.memberid = memberid;
 		this.membername = membername;
@@ -86,7 +86,41 @@ public class MemberSignUpRequest {
 	public boolean hasAdditionalInfo() {
 		// accBank, accno, hasjob, hiredate, marry, haschild 중 모두 null이 아니면 추가 정보가 있다고
 		// 판단
-		return accBank != null && accno != null && hasjob != null && hiredate != null && marry != null && haschild != null;
+	//	return accBank != null && accno != null && hasjob != null && hiredate != null && marry != null && haschild != null;
+		if (accBank != null) {
+		    System.out.println("1");
+		    if (accno != null) {
+		        System.out.println("2");
+		        if (hasjob != null) {
+		            System.out.println("3");
+		            if (hiredate != null) {
+		                System.out.println("4");
+		                if (marry != null) {
+		                    System.out.println("5");
+		                    if (haschild != null) {
+		                    	System.out.println("6");
+		                        // All conditions are met
+		                        // Add your logic here
+		                    	return true;
+		                    }
+		                    // haschild is null
+		                    // Handle the condition where haschild is null
+		                }
+		                // marry is null
+		                // Handle the condition where marry is null
+		            }
+		            // hiredate is null
+		            // Handle the condition where hiredate is null
+		        }
+		        // hasjob is null
+		        // Handle the condition where hasjob is null
+		    }
+		    // accno is null
+		    // Handle the condition where accno is null
+		}
+		// accBank is null
+		// Handle the condition where accBank is null
+		return false;
 	}
 
 	public void setMemberLevel(MemberLevel memberLevel) {
