@@ -182,7 +182,7 @@ public class MemberServiceImpl implements MemberService {
 	        member.setHasjob(updaterequest.getHasjob());
 	    }
 	    if (updaterequest.getHiredate() != null) {
-	        member.sethiredate(updaterequest.getHiredate()); 
+	        member.sethiredate(updaterequest.getHiredate());; 
 	    }
 	    if (updaterequest.getMarry() != null) {
 	        member.setMarry(updaterequest.getMarry());

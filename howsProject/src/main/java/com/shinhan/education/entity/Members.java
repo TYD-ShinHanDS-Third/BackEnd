@@ -83,7 +83,7 @@ public class Members {
 	// java.sql.Date로 변환하여 저장
 	public void sethiredate(Date hiredate) {
 
-		this.hiredate = new java.sql.Date(bday.getTime());
+		this.hiredate = new java.sql.Date(hiredate.getTime());
 	}
 
 	// 회원의 역할을 설정함

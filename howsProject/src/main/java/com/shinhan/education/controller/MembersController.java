@@ -252,7 +252,7 @@ public class MembersController {
 	}
 
 	// 재직자 이메일 인증
-	@PostMapping("/email")
+	@PostMapping("/auth/email")
 	String mailConfirm(@RequestParam("email") String email) throws Exception {
 		String code = registermail.sendSimpleMessage(email);
 		return code;
