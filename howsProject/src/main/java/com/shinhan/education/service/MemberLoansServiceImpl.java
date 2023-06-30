@@ -45,7 +45,7 @@ public class MemberLoansServiceImpl implements MemberLoansService {
         return false;
     }
     
-    // 관리자가 대출 거절 시 승인상태 변경
+    // 관리자가 승인시 승인상태 변경
     @Override
     public boolean adminupdateApprovalLoanStatus(Integer memloanid) {
         Optional<MemberLoans> optionalMemberLoan = memberStateLoansRepository.findById(memloanid);

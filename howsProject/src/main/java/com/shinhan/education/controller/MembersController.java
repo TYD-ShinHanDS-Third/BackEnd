@@ -354,7 +354,7 @@ public class MembersController {
 	public ResponseEntity<String> adminloansApprovalUpdate(@RequestParam("memloanid") Integer memloanid
 	                                       ) {
 	    try {
-	        boolean stateUpdate = memberLoansService.updateApprovalLoanStatus(memloanid);
+	        boolean stateUpdate = memberLoansService.adminupdateApprovalLoanStatus(memloanid);
 	        if (stateUpdate) {
 	            return ResponseEntity.ok("success");
 	        } else {
